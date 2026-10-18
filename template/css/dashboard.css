@@ -26,3 +26,6 @@
 .nwotv-bulk-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0;padding:12px 15px;border:1px solid rgba(120,140,160,.25);border-radius:12px}.nwotv-bulk-toolbar span{margin-right:auto;font-weight:600}.nwotv-bulk-toolbar button{border:1px solid rgba(120,140,160,.3);border-radius:9px;padding:9px 12px;opacity:.5;cursor:not-allowed}.nwotv-table input[type=checkbox]{width:18px;height:18px;accent-color:#285fbc}.nwotv-table th:first-child,.nwotv-table td:first-child{width:34px;text-align:center}
 
 .nwotv-bulk-toolbar button:not(:disabled){opacity:1;cursor:pointer;background:#285fbc;color:#fff;border-color:#285fbc}.nwotv-bulk-toolbar button:disabled{opacity:.45;cursor:not-allowed}.nwotv-success{margin:12px 22px;padding:12px 16px;border:1px solid #47895a;border-radius:10px}.nwotv-bulk-form{margin:0}
+
+.nwotv-preview{max-width:1250px;margin:12px 22px;padding:18px 22px;border:1px solid rgba(150,120,60,.45);border-radius:13px;background:rgba(180,140,65,.09)}
+.nwotv-preview h3{margin:0 0 10px;font-size:1.15rem}.nwotv-preview ol{margin:12px 0;padding-left:23px}.nwotv-preview li{margin:5px 0}
