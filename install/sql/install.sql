@@ -33,3 +33,18 @@ CREATE TABLE IF NOT EXISTS `nw_online_tv_sync_runs` (
   `finished_at` INT UNSIGNED DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Register the native UNA Studio page and home launcher on fresh installs.
+SET @nw_page := (SELECT id FROM sys_std_pages WHERE name = 'nw_online_tv' LIMIT 1);
+INSERT INTO sys_std_pages (`index`, name, header, caption, icon)
+SELECT 3, 'nw_online_tv', '_nw_online_tv', '_nw_online_tv', 'nw_online_tv@modules/newton/my_una_online_tv/|std-icon.svg'
+FROM DUAL WHERE @nw_page IS NULL;
+SET @nw_page := (SELECT id FROM sys_std_pages WHERE name = 'nw_online_tv' LIMIT 1);
+INSERT INTO sys_std_widgets (page_id, module, type, url, click, icon, caption, cnt_notices, cnt_actions)
+SELECT @nw_page, 'nw_online_tv', 'manage', '{url_studio}module.php?name=nw_online_tv', '', 'nw_online_tv@modules/newton/my_una_online_tv/|std-icon.svg', '_nw_online_tv', '', 'a:4:{s:6:"module";s:6:"system";s:6:"method";s:11:"get_actions";s:6:"params";a:0:{}s:5:"class";s:18:"TemplStudioModules";}'
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM sys_std_widgets WHERE module = 'nw_online_tv');
+SET @nw_widget := (SELECT id FROM sys_std_widgets WHERE module = 'nw_online_tv' LIMIT 1);
+SET @nw_home := (SELECT id FROM sys_std_pages WHERE name = 'home' LIMIT 1);
+INSERT INTO sys_std_pages_widgets (page_id, widget_id, `order`)
+SELECT @nw_home, @nw_widget, COALESCE((SELECT MAX(`order`) + 1 FROM sys_std_pages_widgets WHERE page_id = @nw_home), 1)
+FROM DUAL WHERE @nw_home IS NOT NULL AND @nw_widget IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys_std_pages_widgets WHERE page_id = @nw_home AND widget_id = @nw_widget);
