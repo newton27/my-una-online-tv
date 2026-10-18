@@ -14,7 +14,7 @@ final class NwOnlineTvChannelsStudio
         $repository = new NwOnlineTvRepository($db);
         $search = trim((string)($_GET['q'] ?? ''));
         $search = substr($search, 0, 120);
-        $allowedStatuses = ['', 'pending', 'active', 'inactive', 'failed', 'review'];
+        $allowedStatuses = ['', 'pending', 'active', 'inactive', 'failed'];
         $status = (string)($_GET['status'] ?? '');
         if (!in_array($status, $allowedStatuses, true)) $status = '';
         $page = filter_var($_GET['p'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
