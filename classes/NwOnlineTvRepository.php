@@ -18,14 +18,13 @@ final class NwOnlineTvRepository
     }
     public function page(string $term='', string $status='', int $page=1, int $perPage=25): array
     {
-        $term=mb_substr(trim($term),0,120);
-        $status=mb_substr(trim($status),0,24);
+        $term=substr(trim($term),0,120);
+        $status=substr(trim($status),0,24);
         $perPage=max(1,min(100,$perPage));
         $filter=[];$bind=[];
         if ($term!=='') { $filter[]="(title LIKE :title OR category LIKE :category OR country_code LIKE :country)"; $like='%'.str_replace(['!','%','_'],['!!','!%','!_'],$term).'%';$bind=[':title'=>$like,':category'=>$like,':country'=>$like]; }
         if ($status!=='') { $filter[]='status = :status'; $bind[':status']=$status; }
         $where=$filter ? ' WHERE '.implode(' AND ',$filter) : '';
-        if ($term!=='') $where=str_replace(' LIKE :',' LIKE :',$where); // LIKE patterns escaped by explicit ESCAPE clauses below.
         $where=str_replace(' LIKE :title',' LIKE :title ESCAPE \'!\'',$where);
         $where=str_replace(' LIKE :category',' LIKE :category ESCAPE \'!\'',$where);
         $where=str_replace(' LIKE :country',' LIKE :country ESCAPE \'!\'',$where);
@@ -51,7 +50,7 @@ final class NwOnlineTvRepository
             if (!is_array($row)||empty($row['title'])||empty($row['stream_url']))continue;
             $url=(string)$row['stream_url'];
             if(!filter_var($url,FILTER_VALIDATE_URL)||strtolower((string)parse_url($url,PHP_URL_SCHEME))!=='https')continue;
-            $stmt->execute([':title'=>mb_substr(strip_tags((string)$row['title']),0,255),':url'=>$url,':hash'=>hash('sha256',$url),':source'=>$source,':created'=>$now,':updated'=>$now]);
+            $stmt->execute([':title'=>substr(strip_tags((string)$row['title']),0,255),':url'=>$url,':hash'=>hash('sha256',$url),':source'=>$source,':created'=>$now,':updated'=>$now]);
             $stmt->rowCount()===1?$added++:$existing++;
         }
         return ['added'=>$added,'already_listed'=>$existing];
