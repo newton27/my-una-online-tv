@@ -34,3 +34,6 @@ jobs:
 
       - name: Read-only migration preview checks
         run: php tests/migration_preview.php
+
+      - name: Authorization policy checks
+        run: php tests/action_policy.php
