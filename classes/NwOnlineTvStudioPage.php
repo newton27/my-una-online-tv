@@ -70,8 +70,17 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             && BxDolForm::isCsrfTokenValid($_POST['csrf_token']);
                         $action = isset($_POST['bulk_action']) && is_string($_POST['bulk_action']) ? $_POST['bulk_action'] : '';
                         $ids = isset($_POST['channel_ids']) && is_array($_POST['channel_ids']) ? $_POST['channel_ids'] : [];
-                        $affected = NwOnlineTvBulkPolicy::applyReview($pdo, $action, $ids, $authorized, $csrf);
-                        $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channel records updated.</p>';
+                        if ($action === 'preview_delete') {
+                            $preview = NwOnlineTvBulkPolicy::previewDeletion($pdo, $ids, $authorized, $csrf);
+                            $notice = '<section class="nwotv-preview" role="status"><h3>Deletion preview — no changes made</h3><p><strong>' . (int)$preview['count'] . '</strong> selected channels from this page would be affected.</p><ol>';
+                            foreach ($preview['titles'] as $title) {
+                                $notice .= '<li>' . htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</li>';
+                            }
+                            $notice .= '</ol><p>Actual deletion is disabled. Return to the table to revise your selection.</p></section>';
+                        } else {
+                            $affected = NwOnlineTvBulkPolicy::applyReview($pdo, $action, $ids, $authorized, $csrf);
+                            $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channel records updated.</p>';
+                        }
                     } catch (Throwable $e) {
                         error_log('nw_online_tv bulk review: ' . $e->getMessage());
                         $notice = '<p class="nwotv-alert" role="alert">Review action rejected. Check selection and security token.</p>';
