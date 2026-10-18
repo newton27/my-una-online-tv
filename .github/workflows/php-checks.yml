@@ -43,3 +43,12 @@ jobs:
 
       - name: Module structure checks
         run: php tests/module_structure.php
+
+      - name: Assemble development ZIP
+        run: python3 tools/build-dev-package.py
+      - name: Upload development-only ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-tv-dev-php-${{ matrix.php }}
+          path: dist/my-una-online-tv-0.1.0-dev.zip
+          retention-days: 7
