@@ -17,7 +17,7 @@ final class NwOnlineTvRepository
         $sync = $this->db->query("SELECT MAX(finished_at) FROM nw_online_tv_sync_runs WHERE result = 'completed'")->fetchColumn();
         return ['channels'=>$channels,'needs_review'=>$review,'reports_open'=>$reports,'last_sync'=>$sync ? gmdate('Y-m-d H:i',(int)$sync).' UTC':'Never'];
     }
-    public function page(string $term='', string $status='', int $page=1, int $perPage=25): array
+    public function page(string $term='', string $status='', int $page=1, int $perPage=25, bool $reviewOnly=false): array
     {
         $term=substr(trim($term),0,120);
         $status=substr(trim($status),0,24);
@@ -25,6 +25,7 @@ final class NwOnlineTvRepository
         $filter=[];$bind=[];
         if ($term!=='') { $filter[]="(title LIKE :title OR category LIKE :category OR country_code LIKE :country)"; $like='%'.str_replace(['!','%','_'],['!!','!%','!_'],$term).'%';$bind=[':title'=>$like,':category'=>$like,':country'=>$like]; }
         if ($status!=='') { $filter[]='status = :status'; $bind[':status']=$status; }
+        if ($reviewOnly) $filter[]='review_required = 1';
         $where=$filter ? ' WHERE '.implode(' AND ',$filter) : '';
         $where=str_replace(' LIKE :title',' LIKE :title ESCAPE \'!\'',$where);
         $where=str_replace(' LIKE :category',' LIKE :category ESCAPE \'!\'',$where);
