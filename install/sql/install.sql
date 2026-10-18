@@ -34,6 +34,17 @@ CREATE TABLE IF NOT EXISTS `nw_online_tv_sync_runs` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Check history is append-only. A failed URL probe is not proof of dead playback.
+CREATE TABLE IF NOT EXISTS `nw_online_tv_health_checks` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `channel_id` INT UNSIGNED NOT NULL,
+  `checked_at` INT UNSIGNED NOT NULL,
+  `reachable` TINYINT UNSIGNED NOT NULL,
+  `consecutive_failures` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `channel_checked` (`channel_id`, `checked_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Register the native UNA Studio page and home launcher on fresh installs.
 SET @nw_page := (SELECT id FROM sys_std_pages WHERE name = 'nw_online_tv' LIMIT 1);
 INSERT INTO sys_std_pages (`index`, name, header, caption, icon)
