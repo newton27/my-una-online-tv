@@ -6,7 +6,7 @@
 defined('BX_DOL') or die('Access denied');
 class NwOnlineTvStudioPage extends BxTemplStudioModule
 {
-    public function getPageCode()
+    public function getPageCode($sPage = '', $bWrap = true)
     {
         require_once __DIR__ . '/NwOnlineTvDashboard.php';
         return NwOnlineTvDashboard::render([
