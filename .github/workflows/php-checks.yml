@@ -46,6 +46,8 @@ jobs:
 
       - name: Assemble development ZIP
         run: python3 tools/build-dev-package.py
+      - name: Validate package isolation and language keys
+        run: python3 tests/package_safety.py
       - name: Upload development-only ZIP
         uses: actions/upload-artifact@v4
         with:
