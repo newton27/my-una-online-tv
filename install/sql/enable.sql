@@ -1,0 +1,2 @@
+-- Stage 1 intentionally does not register Studio pages or scheduled jobs.
+-- Requires verification of UNA 14/15 configuration APIs before addition.
