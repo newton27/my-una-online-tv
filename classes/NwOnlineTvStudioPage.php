@@ -76,7 +76,16 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             foreach ($preview['titles'] as $title) {
                                 $notice .= '<li>' . htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</li>';
                             }
-                            $notice .= '</ol><p>Actual deletion is disabled. Return to the table to revise your selection.</p></section>';
+                            $notice .= '</ol><p>Confirm only these explicit channel IDs. This permanently removes their associated reports too.</p>';
+                            $notice .= '<form method="post" action="module.php?name=nw_online_tv&amp;page=channels">';
+                            $notice .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars((string)BxDolForm::getCsrfToken(), ENT_QUOTES, 'UTF-8') . '">';
+                            foreach ($preview['ids'] as $id) $notice .= '<input type="hidden" name="channel_ids[]" value="' . (int)$id . '">';
+                            $notice .= '<label>Type DELETE ' . (int)$preview['count'] . ' to confirm <input type="text" name="confirm_delete" autocomplete="off" required></label>';
+                            $notice .= '<button type="submit" name="bulk_action" value="delete_confirm">Permanently delete these ' . (int)$preview['count'] . ' channels</button> <a href="module.php?name=nw_online_tv&amp;page=channels">Cancel</a></form></section>';
+                        } elseif ($action === 'delete_confirm') {
+                            $confirmation = isset($_POST['confirm_delete']) && is_string($_POST['confirm_delete']) ? $_POST['confirm_delete'] : '';
+                            $affected = NwOnlineTvBulkPolicy::deleteSelected($pdo, $ids, $authorized, $csrf, $confirmation);
+                            $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channels permanently deleted.</p>';
                         } else {
                             $affected = NwOnlineTvBulkPolicy::applyReview($pdo, $action, $ids, $authorized, $csrf);
                             $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channel records updated.</p>';
