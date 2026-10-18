@@ -28,3 +28,6 @@ jobs:
         run: php tests/repository.php
       - name: Review policy checks
         run: php tests/review.php
+
+      - name: Sync planner policy checks
+        run: php tests/sync_planner.php
