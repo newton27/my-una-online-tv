@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">My UNA World Online TV</title>
+  <rect x="8" y="18" width="112" height="82" rx="16" fill="#1769aa"/>
+  <rect x="16" y="26" width="96" height="66" rx="10" fill="#103c68"/>
+  <rect x="23" y="33" width="82" height="52" rx="7" fill="#eef7ff"/>
+  <path d="M55 42v34l29-17z" fill="#1769aa"/>
+  <path d="M48 112h32" stroke="#1769aa" stroke-width="8" stroke-linecap="round"/>
+  <path d="M64 101v10" stroke="#1769aa" stroke-width="7" stroke-linecap="round"/>
+</svg>
