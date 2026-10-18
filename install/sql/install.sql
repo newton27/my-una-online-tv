@@ -1,4 +1,4 @@
--- Standalone tables only. Never access Modzzz tables during installation.
+-- Standalone tables only. Never access legacy Online TV tables during installation.
 CREATE TABLE IF NOT EXISTS `nw_online_tv_channels` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `title` VARCHAR(255) NOT NULL,
