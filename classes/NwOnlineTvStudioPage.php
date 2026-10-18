@@ -61,7 +61,23 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                     BX_DATABASE_PASS,
                     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
                 );
-                return $css . NwOnlineTvChannelsStudio::render($pdo);
+                $notice = '';
+                if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+                    try {
+                        require_once __DIR__ . '/NwOnlineTvBulkPolicy.php';
+                        $authorized = function_exists('isAdmin') && isAdmin();
+                        $csrf = isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])
+                            && BxDolForm::isCsrfTokenValid($_POST['csrf_token']);
+                        $action = isset($_POST['bulk_action']) && is_string($_POST['bulk_action']) ? $_POST['bulk_action'] : '';
+                        $ids = isset($_POST['channel_ids']) && is_array($_POST['channel_ids']) ? $_POST['channel_ids'] : [];
+                        $affected = NwOnlineTvBulkPolicy::applyReview($pdo, $action, $ids, $authorized, $csrf);
+                        $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channel records updated.</p>';
+                    } catch (Throwable $e) {
+                        error_log('nw_online_tv bulk review: ' . $e->getMessage());
+                        $notice = '<p class="nwotv-alert" role="alert">Review action rejected. Check selection and security token.</p>';
+                    }
+                }
+                return $css . $notice . NwOnlineTvChannelsStudio::render($pdo);
             } catch (Throwable $e) {
                 error_log('nw_online_tv Studio channels: ' . $e->getMessage());
                 return $css . '<section class="nwotv-dashboard"><p class="nwotv-alert" role="alert">Channel list is temporarily unavailable. Check PHP error log.</p></section>';
