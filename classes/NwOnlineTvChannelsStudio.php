@@ -48,7 +48,7 @@ final class NwOnlineTvChannelsStudio
             $html .= '<div class="nwotv-bulk-toolbar"><span id="nwotv-selection-count">0 selected</span>';
             $html .= '<button type="submit" name="bulk_action" value="flag">Flag for review</button>';
             $html .= '<button type="submit" name="bulk_action" value="clear">Clear flag</button>';
-            $html .= '<button type="button" disabled>Delete selected</button></div></form>';
+            $html .= '<button type="submit" name="bulk_action" value="preview_delete">Preview deletion</button></div></form>';
         }
         $html .= '<nav class="nwotv-pagination" aria-label="Channel pages">';
         if ($data['page'] > 1) $html .= '<a href="' . self::h($base . $query . '&p=' . ($data['page'] - 1)) . '">Previous</a>';
