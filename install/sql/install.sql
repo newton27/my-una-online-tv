@@ -45,6 +45,16 @@ CREATE TABLE IF NOT EXISTS `nw_online_tv_health_checks` (
   KEY `channel_checked` (`channel_id`, `checked_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Attempt ledger includes inconclusive probes so they still count toward rate limiting.
+CREATE TABLE IF NOT EXISTS `nw_online_tv_health_attempts` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `channel_id` INT UNSIGNED NOT NULL,
+  `attempted_at` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `attempted_at` (`attempted_at`),
+  KEY `channel_attempted` (`channel_id`, `attempted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Register the native UNA Studio page and home launcher on fresh installs.
 SET @nw_page := (SELECT id FROM sys_std_pages WHERE name = 'nw_online_tv' LIMIT 1);
 INSERT INTO sys_std_pages (`index`, name, header, caption, icon)
