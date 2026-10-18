@@ -4,6 +4,7 @@
  * Requires a trusted PDO connection configured with exceptions enabled.
  * Not exposed to unauthenticated visitors.
  */
+require_once __DIR__.'/NwOnlineTvImportPolicy.php';
 final class NwOnlineTvRepository
 {
     private PDO $db;
@@ -47,10 +48,10 @@ final class NwOnlineTvRepository
         $stmt=$this->db->prepare('INSERT IGNORE INTO nw_online_tv_channels (title,stream_url,stream_hash,source,created_at,updated_at) VALUES (:title,:url,:hash,:source,:created,:updated)');
         $added=0;$existing=0;$now=time();
         foreach(array_slice($rows,0,10000) as $row) {
-            if (!is_array($row)||empty($row['title'])||empty($row['stream_url']))continue;
-            $url=(string)$row['stream_url'];
-            if(!filter_var($url,FILTER_VALIDATE_URL)||strtolower((string)parse_url($url,PHP_URL_SCHEME))!=='https')continue;
-            $stmt->execute([':title'=>substr(strip_tags((string)$row['title']),0,255),':url'=>$url,':hash'=>hash('sha256',$url),':source'=>$source,':created'=>$now,':updated'=>$now]);
+            if (!is_array($row))continue;
+            $valid=NwOnlineTvImportPolicy::normalize($row);
+            if($valid===null)continue;
+            $stmt->execute([':title'=>$valid['title'],':url'=>$valid['stream_url'],':hash'=>$valid['stream_hash'],':source'=>$source,':created'=>$now,':updated'=>$now]);
             $stmt->rowCount()===1?$added++:$existing++;
         }
         return ['added'=>$added,'already_listed'=>$existing];
