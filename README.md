@@ -11,7 +11,7 @@ Independent, free UNA CMS Online TV project maintained by My UNA World.
 - Channel reporting, professional Studio tools and read-only legacy migration.
 
 ## Clean-room policy
-No Modzzz source, artwork or copied SQL definitions are part of this project. The new module has independent identity `nw_online_tv`, directory `modules/newton/my_una_online_tv`, and database prefix `nw_online_tv_`. Existing Modzzz installations must remain unchanged.
+No legacy Online TV source, artwork or copied SQL definitions are part of this project. The new module has independent identity `nw_online_tv`, directory `modules/newton/my_una_online_tv`, and database prefix `nw_online_tv_`. Existing legacy Online TV installations must remain unchanged.
 
 ## Release policy
 Free ($0), no activation keys or mandatory subscriptions. Do not distribute as a Marketplace-ready release before native installation, security and migration testing.
