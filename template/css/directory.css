@@ -1,0 +1,8 @@
+.nwotv-directory{max-width:1200px;margin:0 auto;padding:20px;color:var(--bx-font-color,#e9edf4);font-family:inherit}
+.nwotv-directory header h2{font-size:1.55rem;margin:0 0 6px}
+.nwotv-directory header p{margin:0 0 18px;opacity:.75}
+.nwotv-table-scroll{overflow-x:auto;border:1px solid rgba(128,145,170,.26);border-radius:14px}
+.nwotv-directory table{width:100%;border-collapse:collapse;text-align:left;min-width:550px}
+.nwotv-directory th,.nwotv-directory td{padding:13px 16px;border-bottom:1px solid rgba(128,145,170,.16)}
+.nwotv-directory th{font-size:.85rem;opacity:.8;font-weight:650}
+.nwotv-directory tbody tr:last-child td{border-bottom:0}
