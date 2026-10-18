@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources name="NwOnlineTv">
+  <string name="_nw_online_tv" language="en">My UNA World Online TV</string>
+  <string name="_nw_online_tv_description" language="en">Free community channel directory</string>
+</resources>
