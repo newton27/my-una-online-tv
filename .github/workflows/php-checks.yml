@@ -1,0 +1,30 @@
+name: PHP development checks
+on:
+  push:
+  pull_request:
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite
+          coverage: none
+      - name: PHP syntax
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+      - name: Parser checks
+        run: php tests/catalog.php
+      - name: Dashboard checks
+        run: php tests/dashboard.php
+      - name: Directory checks
+        run: php tests/directory.php
+      - name: Repository checks
+        run: php tests/repository.php
+      - name: Review policy checks
+        run: php tests/review.php
