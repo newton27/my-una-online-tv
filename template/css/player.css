@@ -1,0 +1,4 @@
+.nwotv-player{max-width:1100px;margin:0 auto;padding:16px}
+.nwotv-player h2{font-size:1.35rem;margin:0 0 14px}
+.nwotv-player video{width:100%;display:block;aspect-ratio:16/9;background:#080b11;border-radius:14px;max-height:75vh}
+.nwotv-player-error{border:1px solid #c86868;padding:14px;border-radius:10px}
