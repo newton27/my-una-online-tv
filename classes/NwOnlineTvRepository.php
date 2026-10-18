@@ -45,7 +45,8 @@ final class NwOnlineTvRepository
     public function import(array $rows,string $source='manual'): array
     {
         if (!in_array($source,['manual','iptv-org','free-tv'],true)) throw new InvalidArgumentException('Unsupported catalog');
-        $stmt=$this->db->prepare('INSERT IGNORE INTO nw_online_tv_channels (title,stream_url,stream_hash,source,created_at,updated_at) VALUES (:title,:url,:hash,:source,:created,:updated)');
+        $insertVerb=$this->db->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
+        $stmt=$this->db->prepare($insertVerb.' INTO nw_online_tv_channels (title,stream_url,stream_hash,source,created_at,updated_at) VALUES (:title,:url,:hash,:source,:created,:updated)');
         $added=0;$existing=0;$now=time();
         foreach(array_slice($rows,0,10000) as $row) {
             if (!is_array($row))continue;
