@@ -92,8 +92,10 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channel records updated.</p>';
                         }
                     } catch (Throwable $e) {
-                        error_log('nw_online_tv bulk review: ' . $e->getMessage());
-                        $notice = '<p class="nwotv-alert" role="alert">Review action rejected. Check selection and security token.</p>';
+                        // Show only a safe failure category. Never expose tokens, queries or exception text.
+                        $category = !$authorized ? 'ADMIN' : (!$csrf ? 'CSRF' : ($e instanceof PDOException ? 'DATABASE' : 'VALIDATION'));
+                        error_log('nw_online_tv bulk review [' . $category . ']: ' . get_class($e));
+                        $notice = '<p class="nwotv-alert" role="alert">Action rejected (' . $category . '). No changes confirmed. Review the selection or contact the administrator.</p>';
                     }
                 }
                 return $css . $notice . NwOnlineTvChannelsStudio::render($pdo);
