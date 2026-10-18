@@ -21,7 +21,10 @@ final class NwOnlineTvChannelsStudio
         $data = $repository->page($search, $status, $page, 25);
         $base = 'module.php?name=nw_online_tv&page=channels';
         $query = '&q=' . rawurlencode($search) . '&status=' . rawurlencode($status);
-        $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Search and inspect the Online TV catalog. Select rows to prepare a bulk action. Review flags and confirmed deletion apply only to explicitly selected channels, up to 100 per request. Preview before deleting.</p></header>';
+        $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Select channels individually or use the page checkbox. Review the exact deletion count, then confirm once; no typing required. Actions affect only explicit selections (maximum 100 per request).</p></header>';
+        // Review flags represent suspected problems, not verified unplayable streams.
+        $health = $db->query('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN review_required = 1 THEN 1 ELSE 0 END), 0) AS flagged FROM nw_online_tv_channels')->fetch(PDO::FETCH_ASSOC);
+        $html .= '<div class="nwotv-bulk-toolbar" aria-label="Channel review summary"><strong>Total channels: ' . (int)$health['total'] . '</strong><span>Flagged for review: ' . (int)$health['flagged'] . '</span><span>Unflagged: ' . ((int)$health['total'] - (int)$health['flagged']) . '</span></div>';
         $html .= '<form class="nwotv-filters" method="get" action="module.php">';
         $html .= '<input type="hidden" name="name" value="nw_online_tv"><input type="hidden" name="page" value="channels">';
         $html .= '<label>Search channels <input type="search" name="q" maxlength="120" value="' . self::h($search) . '" placeholder="Channel title, category, or country"></label>';
