@@ -31,3 +31,6 @@ jobs:
 
       - name: Sync planner policy checks
         run: php tests/sync_planner.php
+
+      - name: Read-only migration preview checks
+        run: php tests/migration_preview.php
