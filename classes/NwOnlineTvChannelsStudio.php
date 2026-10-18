@@ -21,7 +21,7 @@ final class NwOnlineTvChannelsStudio
         $data = $repository->page($search, $status, $page, 25);
         $base = 'module.php?name=nw_online_tv&page=channels';
         $query = '&q=' . rawurlencode($search) . '&status=' . rawurlencode($status);
-        $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Search and inspect the Online TV catalog. Bulk actions are not enabled yet.</p></header>';
+        $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Search and inspect the Online TV catalog. Select rows to prepare a bulk action. Changes remain disabled pending server-side authorization tests.</p></header>';
         $html .= '<form class="nwotv-filters" method="get" action="module.php">';
         $html .= '<input type="hidden" name="name" value="nw_online_tv"><input type="hidden" name="page" value="channels">';
         $html .= '<label>Search channels <input type="search" name="q" maxlength="120" value="' . self::h($search) . '" placeholder="Channel title, category, or country"></label>';
@@ -35,15 +35,16 @@ final class NwOnlineTvChannelsStudio
         if (!$data['items']) {
             $html .= '<div class="nwotv-empty">No channels match these filters. No records were modified.</div>';
         } else {
-            $html .= '<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th scope="col">Channel</th><th scope="col">Category</th><th scope="col">Country</th><th scope="col">Status</th><th scope="col">Review</th></tr></thead><tbody>';
+            $html .= '<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th scope="col"><input type="checkbox" id="nwotv-select-all" aria-label="Select all channels on current page"></th><th scope="col">Channel</th><th scope="col">Category</th><th scope="col">Country</th><th scope="col">Status</th><th scope="col">Review</th></tr></thead><tbody>';
             foreach ($data['items'] as $row) {
-                $html .= '<tr><td>' . self::h($row['title']) . '</td><td>' . self::h($row['category']) . '</td><td>' . self::h($row['country_code']) . '</td><td>' . self::h($row['status']) . '</td><td>' . (!empty($row['review_required']) ? 'Needs review' : '—') . '</td></tr>';
+                $html .= '<tr><td><input type="checkbox" class="nwotv-row-check" value="' . (int)$row['id'] . '" aria-label="Select channel"></td><td>' . self::h($row['title']) . '</td><td>' . self::h($row['category']) . '</td><td>' . self::h($row['country_code']) . '</td><td>' . self::h($row['status']) . '</td><td>' . (!empty($row['review_required']) ? 'Needs review' : '—') . '</td></tr>';
             }
             $html .= '</tbody></table></div>';
         }
+        $html .= '<div class="nwotv-bulk-toolbar"><span id="nwotv-selection-count">0 selected</span><button type="button" disabled>Flag for review</button><button type="button" disabled>Clear flag</button><button type="button" disabled>Delete selected</button></div>';
         $html .= '<nav class="nwotv-pagination" aria-label="Channel pages">';
         if ($data['page'] > 1) $html .= '<a href="' . self::h($base . $query . '&p=' . ($data['page'] - 1)) . '">Previous</a>';
         if ($data['page'] < $data['pages']) $html .= '<a href="' . self::h($base . $query . '&p=' . ($data['page'] + 1)) . '">Next</a>';
-        return $html . '</nav></section>';
+        return $html . '</nav></section><script>(function(){const root=document.querySelector(".nwotv-directory");if(!root)return;const all=root.querySelector("#nwotv-select-all"),rows=Array.from(root.querySelectorAll(".nwotv-row-check")),out=root.querySelector("#nwotv-selection-count");if(!all||!out)return;function refresh(){const n=rows.filter(r=>r.checked).length;out.textContent=n+" selected on this page";all.checked=rows.length>0&&n===rows.length;all.indeterminate=n>0&&n<rows.length;}all.addEventListener("change",()=>{rows.forEach(r=>r.checked=all.checked);refresh()});rows.forEach(r=>r.addEventListener("change",refresh));refresh();})();</script>';
     }
 }
