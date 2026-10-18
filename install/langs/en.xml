@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources name="en" flag="gb" title="English">
-  <string name="_nw_online_tv"><![CDATA[My UNA World Online TV]]></string>
-  <string name="_nw_online_tv_description"><![CDATA[Free community channel directory]]></string>
+    <string name="_sys_module_nw_online_tv"><![CDATA[My UNA World Online TV]]></string>
+    <string name="_nw_online_tv"><![CDATA[My UNA World Online TV]]></string>
+    <string name="_nw_online_tv_description"><![CDATA[Free community channel directory]]></string>
 </resources>
