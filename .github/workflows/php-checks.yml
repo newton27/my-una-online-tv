@@ -37,3 +37,6 @@ jobs:
 
       - name: Authorization policy checks
         run: php tests/action_policy.php
+
+      - name: HTML5 player checks
+        run: php tests/player.php
