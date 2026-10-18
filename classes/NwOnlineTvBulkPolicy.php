@@ -65,4 +65,42 @@ final class NwOnlineTvBulkPolicy
         ];
     }
 
+    /**
+     * Transactional deletion of explicit IDs only. The confirmation count must
+     * agree with the locked rows. Caller must perform fresh UNA admin + CSRF
+     * checks; there is deliberately no filtered/all-results deletion mode.
+     */
+    public static function deleteSelected(PDO $pdo, array $rawIds, bool $authorized, bool $csrfValid, string $confirmation): int
+    {
+        if (!$authorized || !$csrfValid) {
+            throw new RuntimeException('Access denied.');
+        }
+        $ids = self::channelIds($rawIds);
+        $count = count($ids);
+        if (!hash_equals('DELETE ' . $count, $confirmation)) {
+            throw new RuntimeException('Deletion confirmation did not match the selection count.');
+        }
+        $slots = implode(',', array_fill(0, $count, '?'));
+        $pdo->beginTransaction();
+        try {
+            $lock = $pdo->prepare("SELECT id FROM nw_online_tv_channels WHERE id IN ($slots) FOR UPDATE");
+            $lock->execute($ids);
+            if (count($lock->fetchAll(PDO::FETCH_COLUMN)) !== $count) {
+                throw new RuntimeException('Selection changed. Refresh and preview again.');
+            }
+            $reports = $pdo->prepare("DELETE FROM nw_online_tv_reports WHERE channel_id IN ($slots)");
+            $reports->execute($ids);
+            $delete = $pdo->prepare("DELETE FROM nw_online_tv_channels WHERE id IN ($slots)");
+            $delete->execute($ids);
+            if ($delete->rowCount() !== $count) {
+                throw new RuntimeException('Deletion count mismatch. Transaction rolled back.');
+            }
+            $pdo->commit();
+            return $count;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
 }
