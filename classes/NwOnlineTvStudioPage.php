@@ -80,12 +80,13 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $notice .= '<form method="post" action="module.php?name=nw_online_tv&amp;page=channels">';
                             $notice .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars((string)BxDolForm::getCsrfToken(), ENT_QUOTES, 'UTF-8') . '">';
                             foreach ($preview['ids'] as $id) $notice .= '<input type="hidden" name="channel_ids[]" value="' . (int)$id . '">';
-                            $notice .= '<label class="nwotv-confirm-label" for="nwotv-confirm-delete">Type <strong>DELETE ' . (int)$preview['count'] . '</strong> to confirm</label>';
-                            $notice .= '<input id="nwotv-confirm-delete" class="nwotv-confirm-input" type="text" name="confirm_delete" autocomplete="off" spellcheck="false" required>';
+                            $notice .= '<p class="nwotv-confirm-label">You are about to permanently delete <strong>' . (int)$preview['count'] . '</strong> selected channel(s). Verify the names above, then confirm once. No typing required.</p>';
                             $notice .= '<div class="nwotv-confirm-actions"><button class="nwotv-confirm-danger" type="submit" name="bulk_action" value="delete_confirm">Permanently delete ' . (int)$preview['count'] . ' selected channel(s)</button><a class="nwotv-confirm-cancel" href="module.php?name=nw_online_tv&amp;page=channels">Cancel</a></div></form></section>';
                         } elseif ($action === 'delete_confirm') {
-                            $confirmation = isset($_POST['confirm_delete']) && is_string($_POST['confirm_delete']) ? $_POST['confirm_delete'] : '';
-                            $affected = NwOnlineTvBulkPolicy::deleteSelected($pdo, $ids, $authorized, $csrf, $confirmation);
+                            // The second, CSRF-protected confirmation click is the deliberate authorization.
+                            // Retain the policy's exact-count check while removing repetitive manual typing.
+                            $confirmedIds = NwOnlineTvBulkPolicy::channelIds($ids);
+                            $affected = NwOnlineTvBulkPolicy::deleteSelected($pdo, $confirmedIds, $authorized, $csrf, 'DELETE ' . count($confirmedIds));
                             $notice = '<p class="nwotv-success" role="status">' . (int)$affected . ' channels permanently deleted.</p>';
                         } else {
                             $affected = NwOnlineTvBulkPolicy::applyReview($pdo, $action, $ids, $authorized, $csrf);
