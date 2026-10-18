@@ -18,9 +18,10 @@ final class NwOnlineTvChannelsStudio
         $status = (string)($_GET['status'] ?? '');
         if (!in_array($status, $allowedStatuses, true)) $status = '';
         $page = filter_var($_GET['p'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
-        $data = $repository->page($search, $status, $page, 25);
+        $reviewOnly = ($_GET['review'] ?? '') === '1';
+        $data = $repository->page($search, $status, $page, 25, $reviewOnly);
         $base = 'module.php?name=nw_online_tv&page=channels';
-        $query = '&q=' . rawurlencode($search) . '&status=' . rawurlencode($status);
+        $query = '&q=' . rawurlencode($search) . '&status=' . rawurlencode($status) . '&review=' . ($reviewOnly ? '1' : '0');
         $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Select channels individually or use the page checkbox. Review the exact deletion count, then confirm once; no typing required. Actions affect only explicit selections (maximum 100 per request).</p></header>';
         // Review flags represent suspected problems, not verified unplayable streams.
         $health = $db->query('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN review_required = 1 THEN 1 ELSE 0 END), 0) AS flagged FROM nw_online_tv_channels')->fetch(PDO::FETCH_ASSOC);
@@ -33,7 +34,7 @@ final class NwOnlineTvChannelsStudio
             $label = $option === '' ? 'All statuses' : ucfirst($option);
             $html .= '<option value="' . self::h($option) . '"' . ($option === $status ? ' selected' : '') . '>' . self::h($label) . '</option>';
         }
-        $html .= '</select></label><button type="submit">Filter channels</button></form>';
+        $html .= '</select></label><label>Review status <select name="review"><option value="0"' . (!$reviewOnly ? ' selected' : '') . '>All channels</option><option value="1"' . ($reviewOnly ? ' selected' : '') . '>Needs review only</option></select></label><button type="submit">Filter channels</button></form>';
         $html .= '<p class="nwotv-results">' . (int)$data['total'] . ' matching channels — page ' . (int)$data['page'] . ' of ' . (int)$data['pages'] . '</p>';
         if (!$data['items']) {
             $html .= '<div class="nwotv-empty">No channels match these filters. No records were modified.</div>';
