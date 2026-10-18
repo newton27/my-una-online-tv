@@ -1,8 +1,9 @@
-.nwotv-dashboard{max-width:1200px;margin:0 auto;padding:20px;color:var(--bx-font-color,#e9edf4);font-family:inherit}
-.nwotv-heading h2{margin:0;font-size:1.65rem;font-weight:700}
-.nwotv-heading p{margin:8px 0 22px;color:var(--bx-font-color-muted,#9ca8b8)}
-.nwotv-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-.nwotv-card{border:1px solid rgba(128,145,170,.25);background:var(--bx-page-background-color,#18222e);border-radius:16px;padding:22px;min-height:112px;box-shadow:0 4px 18px rgba(0,0,0,.07)}
-.nwotv-card h3{font-size:.88rem;font-weight:600;margin:0 0 20px;opacity:.8}
-.nwotv-card strong{display:block;font-size:1.7rem;line-height:1.2;overflow-wrap:anywhere}
-@media(max-width:520px){.nwotv-dashboard{padding:12px}.nwotv-card-grid{grid-template-columns:1fr}}
+.nwotv-dashboard{max-width:1250px;margin:0 auto;padding:24px;color:inherit;font-family:inherit}
+.nwotv-heading{margin-bottom:22px}.nwotv-heading h2{font-size:1.65rem;line-height:1.25;font-weight:750;margin:0 0 7px}.nwotv-heading p{margin:0;opacity:.75;font-size:1rem}
+.nwotv-nav{display:flex;align-items:center;gap:16px;flex-wrap:wrap;max-width:1250px;margin:12px auto 0;padding:15px 24px;border:1px solid rgba(120,140,160,.24);border-radius:15px;background:rgba(120,140,160,.07)}.nwotv-nav strong{padding:8px 14px;border-radius:10px;background:rgba(65,125,220,.13);color:inherit}.nwotv-nav span{opacity:.74;font-size:.92rem}
+.nwotv-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.nwotv-card{border:1px solid rgba(120,140,160,.24);border-radius:18px;padding:23px;min-height:132px;background:rgba(120,140,160,.07);box-shadow:0 5px 20px rgba(0,0,0,.045);box-sizing:border-box}
+.nwotv-card h3{font-size:.94rem;font-weight:600;line-height:1.3;margin:0 0 22px;opacity:.77}.nwotv-card strong{display:block;font-size:clamp(1.4rem,2vw,2rem);font-weight:750;line-height:1.2;overflow-wrap:anywhere}
+.nwotv-alert{max-width:1250px;margin:12px auto;padding:12px 18px;border:1px solid #bc6d5e;border-radius:12px}
+@media(max-width:620px){.nwotv-dashboard{padding:15px}.nwotv-card-grid{grid-template-columns:1fr 1fr;gap:10px}.nwotv-card{padding:16px;min-height:116px}.nwotv-nav{margin:8px 15px 0;padding:12px}}
+@media(max-width:420px){.nwotv-card-grid{grid-template-columns:1fr}}
