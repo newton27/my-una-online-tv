@@ -10,8 +10,8 @@ final class NwOnlineTvHealthBatch
 {
     public static function run(PDO $db, int $now): array
     {
-        if ($now < 1 || $db->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
-            throw new RuntimeException('MariaDB and a valid timestamp are required.');
+        if ($now < 1 || abs(time() - $now) > 5 || $db->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+            throw new RuntimeException('MariaDB and a current timestamp are required.');
         }
         $lock = $db->query("SELECT GET_LOCK('nw_online_tv_health_batch', 0)")->fetchColumn();
         if ((int)$lock !== 1) return ['checked'=>0,'skipped'=>'busy'];
