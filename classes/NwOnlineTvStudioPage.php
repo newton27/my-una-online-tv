@@ -94,6 +94,14 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                     } catch (Throwable $e) {
                         // Show only a safe failure category. Never expose tokens, queries or exception text.
                         $category = !$authorized ? 'ADMIN' : (!$csrf ? 'CSRF' : ($e instanceof PDOException ? 'DATABASE' : 'VALIDATION'));
+                        if ($category === 'VALIDATION') {
+                            $message = $e->getMessage();
+                            if ($message === 'Deletion confirmation did not match the selection count.') $category = 'CONFIRMATION_MISMATCH';
+                            elseif (strpos($message, 'Selection changed') === 0) $category = 'SELECTION_CHANGED';
+                            elseif (strpos($message, 'Select between 1 and 100') === 0 || strpos($message, 'Invalid channel identifier') === 0 || strpos($message, 'Duplicate channel identifiers') === 0) $category = 'INVALID_SELECTION';
+                            elseif ($message === 'Unsupported deletion database driver.') $category = 'UNSUPPORTED_DRIVER';
+                            elseif ($message === 'Deletion count mismatch. Transaction rolled back.') $category = 'COUNT_MISMATCH';
+                        }
                         error_log('nw_online_tv bulk review [' . $category . ']: ' . get_class($e));
                         $notice = '<p class="nwotv-alert" role="alert">Action rejected (' . $category . '). No changes confirmed. Review the selection or contact the administrator.</p>';
                     }
