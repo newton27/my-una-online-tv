@@ -32,6 +32,7 @@ final class NwOnlineTvStreamProbe
         $curl = curl_init($url);
         if (!$curl) return ['result'=>'unknown','reason'=>'curl_init_failed'];
         try {
+            $received = 0;
             curl_setopt_array($curl, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_HEADER => false,
@@ -44,8 +45,11 @@ final class NwOnlineTvStreamProbe
                 CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
                 CURLOPT_HTTPHEADER => ['Range: bytes=0-2047','Accept: application/vnd.apple.mpegurl, application/x-mpegURL, */*'],
                 CURLOPT_RESOLVE => [$host . ':443:' . $ip],
-                CURLOPT_WRITEFUNCTION => static function ($handle, $data) {
-                    return strlen($data) > 4096 ? 0 : strlen($data);
+                CURLOPT_WRITEFUNCTION => static function ($handle, $data) use (&$received) {
+                    $length = strlen($data);
+                    if ($received + $length > 4096) return 0;
+                    $received += $length;
+                    return $length;
                 },
             ]);
             $ok = curl_exec($curl);
