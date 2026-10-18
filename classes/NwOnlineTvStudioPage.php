@@ -5,6 +5,20 @@
 defined('BX_DOL') or die('Access denied');
 class NwOnlineTvStudioPage extends BxTemplStudioModule
 {
+    public function __construct($sModule, $mixedPageName, $sPage = '')
+    {
+        parent::__construct($sModule, $mixedPageName, $sPage);
+        $this->sPageDefault = 'overview';
+        if ($sPage === '') $this->sPage = 'overview';
+        $this->aMenuItems = [
+            'overview' => ['name' => 'overview', 'icon' => 'tachometer', 'title' => 'Overview'],
+            'channels' => ['name' => 'channels', 'icon' => 'tv', 'title' => 'Channels'],
+            'sync' => ['name' => 'sync', 'icon' => 'refresh', 'title' => 'Sync'],
+            'reports' => ['name' => 'reports', 'icon' => 'flag', 'title' => 'Reports'],
+            'settings' => ['name' => 'settings', 'icon' => 'cog', 'title' => 'Settings'],
+        ];
+    }
+
     public function getPageCode($sPage = '', $bWrap = true)
     {
         require_once __DIR__ . '/NwOnlineTvDashboard.php';
@@ -36,7 +50,14 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
         }
         $cssPath = dirname(__DIR__) . '/template/css/dashboard.css';
         $css = is_readable($cssPath) ? '<style>' . file_get_contents($cssPath) . '</style>' : '';
-        $nav = '<nav class="nwotv-nav" aria-label="Online TV Studio sections"><strong>Overview</strong><span>Channel management, synchronization, and reports are under development.</span></nav>';
-        return $css . $nav . $error . NwOnlineTvDashboard::render($metrics);
+        $page = (string)($sPage !== '' ? $sPage : ($_GET['page'] ?? 'overview'));
+        if (!in_array($page, ['overview', 'channels', 'sync', 'reports', 'settings'], true)) $page = 'overview';
+        if ($page === 'overview') {
+            return $css . $error . NwOnlineTvDashboard::render($metrics);
+        }
+        $titles = ['channels' => 'Channels', 'sync' => 'Channel synchronization', 'reports' => 'Channel reports', 'settings' => 'Settings'];
+        $name = htmlspecialchars($titles[$page], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return $css . '<section class="nwotv-dashboard"><header class="nwotv-heading"><h2>' . $name . '</h2><p>Management controls are under development. No changes can be made on this page yet.</p></header></section>';
+
     }
 }
