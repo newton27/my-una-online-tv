@@ -26,6 +26,16 @@ final class NwOnlineTvChannelsStudio
         // Review flags represent suspected problems, not verified unplayable streams.
         $health = $db->query('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN review_required = 1 THEN 1 ELSE 0 END), 0) AS flagged FROM nw_online_tv_channels')->fetch(PDO::FETCH_ASSOC);
         $html .= '<div class="nwotv-bulk-toolbar" aria-label="Channel review summary"><strong>Total channels: ' . (int)$health['total'] . '</strong><span>Flagged for review: ' . (int)$health['flagged'] . '</span><span>Unflagged: ' . ((int)$health['total'] - (int)$health['flagged']) . '</span></div>';
+        // Health-check history is optional until the additive migration is applied.
+        $table = $db->query("SHOW TABLES LIKE 'nw_online_tv_health_checks'")->fetchColumn();
+        if ($table) {
+            $healthCounts = $db->query('SELECT SUM(last.reachable = 1) AS reachable, SUM(last.reachable = 0) AS unreachable, COUNT(*) AS checked FROM (SELECT h.channel_id, h.reachable FROM nw_online_tv_health_checks h INNER JOIN (SELECT channel_id, MAX(id) AS latest_id FROM nw_online_tv_health_checks GROUP BY channel_id) last_id ON last_id.latest_id = h.id INNER JOIN nw_online_tv_channels c ON c.id = h.channel_id) last')->fetch(PDO::FETCH_ASSOC);
+            $checked = (int)$healthCounts['checked'];
+            $html .= '<div class="nwotv-bulk-toolbar" aria-label="Availability checks"><strong>Reachable URL: ' . (int)$healthCounts['reachable'] . '</strong><span>Last check failed: ' . (int)$healthCounts['unreachable'] . '</span><span>Unchecked: ' . max(0, (int)$health['total'] - $checked) . '</span></div>';
+            $html .= '<p class="nwotv-results">URL availability does not prove that a stream plays. Failed checks require review; they do not trigger deletion.</p>';
+        } else {
+            $html .= '<p class="nwotv-results">Automatic health-check statistics will appear after the health-history migration. Scanning remains disabled.</p>';
+        }
         $html .= '<form class="nwotv-filters" method="get" action="module.php">';
         $html .= '<input type="hidden" name="name" value="nw_online_tv"><input type="hidden" name="page" value="channels">';
         $html .= '<label>Search channels <input type="search" name="q" maxlength="120" value="' . self::h($search) . '" placeholder="Channel title, category, or country"></label>';
