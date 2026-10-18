@@ -21,7 +21,7 @@ final class NwOnlineTvChannelsStudio
         $data = $repository->page($search, $status, $page, 25);
         $base = 'module.php?name=nw_online_tv&page=channels';
         $query = '&q=' . rawurlencode($search) . '&status=' . rawurlencode($status);
-        $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Search and inspect the Online TV catalog. Select rows to prepare a bulk action. Changes remain disabled pending server-side authorization tests.</p></header>';
+        $html = '<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel management</h2><p>Search and inspect the Online TV catalog. Select rows to prepare a bulk action. Review flags can be managed in batches of up to 100 channels. Deletion remains disabled.</p></header>';
         $html .= '<form class="nwotv-filters" method="get" action="module.php">';
         $html .= '<input type="hidden" name="name" value="nw_online_tv"><input type="hidden" name="page" value="channels">';
         $html .= '<label>Search channels <input type="search" name="q" maxlength="120" value="' . self::h($search) . '" placeholder="Channel title, category, or country"></label>';
@@ -35,13 +35,21 @@ final class NwOnlineTvChannelsStudio
         if (!$data['items']) {
             $html .= '<div class="nwotv-empty">No channels match these filters. No records were modified.</div>';
         } else {
+            $token = BxDolForm::getCsrfToken();
+            $html .= '<form method="post" action="' . self::h($base . $query . '&p=' . $data['page']) . '" class="nwotv-bulk-form">';
+            $html .= '<input type="hidden" name="csrf_token" value="' . self::h((string)$token) . '">';
             $html .= '<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th scope="col"><input type="checkbox" id="nwotv-select-all" aria-label="Select all channels on current page"></th><th scope="col">Channel</th><th scope="col">Category</th><th scope="col">Country</th><th scope="col">Status</th><th scope="col">Review</th></tr></thead><tbody>';
             foreach ($data['items'] as $row) {
-                $html .= '<tr><td><input type="checkbox" class="nwotv-row-check" value="' . (int)$row['id'] . '" aria-label="Select channel"></td><td>' . self::h($row['title']) . '</td><td>' . self::h($row['category']) . '</td><td>' . self::h($row['country_code']) . '</td><td>' . self::h($row['status']) . '</td><td>' . (!empty($row['review_required']) ? 'Needs review' : '—') . '</td></tr>';
+                $html .= '<tr><td><input type="checkbox" class="nwotv-row-check" name="channel_ids[]" value="' . (int)$row['id'] . '" aria-label="Select channel"></td><td>' . self::h($row['title']) . '</td><td>' . self::h($row['category']) . '</td><td>' . self::h($row['country_code']) . '</td><td>' . self::h($row['status']) . '</td><td>' . (!empty($row['review_required']) ? 'Needs review' : '—') . '</td></tr>';
             }
             $html .= '</tbody></table></div>';
         }
-        $html .= '<div class="nwotv-bulk-toolbar"><span id="nwotv-selection-count">0 selected</span><button type="button" disabled>Flag for review</button><button type="button" disabled>Clear flag</button><button type="button" disabled>Delete selected</button></div>';
+        if (!empty($data['items'])) {
+            $html .= '<div class="nwotv-bulk-toolbar"><span id="nwotv-selection-count">0 selected</span>';
+            $html .= '<button type="submit" name="bulk_action" value="flag">Flag for review</button>';
+            $html .= '<button type="submit" name="bulk_action" value="clear">Clear flag</button>';
+            $html .= '<button type="button" disabled>Delete selected</button></div></form>';
+        }
         $html .= '<nav class="nwotv-pagination" aria-label="Channel pages">';
         if ($data['page'] > 1) $html .= '<a href="' . self::h($base . $query . '&p=' . ($data['page'] - 1)) . '">Previous</a>';
         if ($data['page'] < $data['pages']) $html .= '<a href="' . self::h($base . $query . '&p=' . ($data['page'] + 1)) . '">Next</a>';
