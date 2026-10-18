@@ -83,7 +83,13 @@ final class NwOnlineTvBulkPolicy
         $slots = implode(',', array_fill(0, $count, '?'));
         $pdo->beginTransaction();
         try {
-            $lock = $pdo->prepare("SELECT id FROM nw_online_tv_channels WHERE id IN ($slots) FOR UPDATE");
+            // Preserve row locking on MariaDB/MySQL. SQLite test fixtures do not support FOR UPDATE.
+            $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+            if (!in_array($driver, ['mysql', 'sqlite'], true)) {
+                throw new RuntimeException('Unsupported deletion database driver.');
+            }
+            $locking = $driver === 'mysql' ? ' FOR UPDATE' : '';
+            $lock = $pdo->prepare("SELECT id FROM nw_online_tv_channels WHERE id IN ($slots)" . $locking);
             $lock->execute($ids);
             if (count($lock->fetchAll(PDO::FETCH_COLUMN)) !== $count) {
                 throw new RuntimeException('Selection changed. Refresh and preview again.');
