@@ -40,3 +40,6 @@ jobs:
 
       - name: HTML5 player checks
         run: php tests/player.php
+
+      - name: Module structure checks
+        run: php tests/module_structure.php
