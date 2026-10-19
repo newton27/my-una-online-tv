@@ -5,7 +5,7 @@
  */
 final class NwOnlineTvPlaylistPreview
 {
-    public static function parse(string $body, array $existingHashes = [], int $maxEntries = 100, int $page = 1, string $search = '', string $status = 'all', string $sort = 'original'): array
+    public static function parse(string $body, array $existingHashes = [], int $maxEntries = 100, int $page = 1, string $search = '', string $status = 'all', string $sort = 'original', bool $includePrivateUrls = false): array
     {
         if (strlen($body) > 2097152) throw new InvalidArgumentException('Playlist exceeds the preview size limit.');
         if (!preg_match('/^\\s*#EXTM3U(?:\\s|$)/i', substr($body, 0, 256))) throw new InvalidArgumentException('Not an extended M3U playlist.');
@@ -40,13 +40,13 @@ final class NwOnlineTvPlaylistPreview
             $seen[$hash] = true;
             $title=$pending!==''?$pending:'Unnamed channel';
             if(($search===''||mb_stripos($title,$search)!==false)&&($status==='all'||($status==='duplicate')===$dupe))
-                $matches[]=['title'=>$title,'host'=>strtolower($url['host']),'duplicate'=>$dupe,'status'=>$dupe?'Duplicate':'Candidate','order'=>count($matches)];
+                $matches[]=['title'=>$title,'host'=>strtolower($url['host']),'duplicate'=>$dupe,'status'=>$dupe?'Duplicate':'Candidate','order'=>count($matches),'stream_url'=>$line];
             $eligibleCount++; $pending = '';
         }
         if($sort==='name'||$sort==='name_desc')usort($matches,static function($a,$b)use($sort){$n=strnatcasecmp($a['title'],$b['title']);return $n===0?$a['order']<=>$b['order']:($sort==='name_desc'?-1:1)*$n;});
         if($sort==='status')usort($matches,static fn($a,$b)=>strcmp($a['status'],$b['status'])?:($a['order']<=>$b['order']));
         $total=count($matches);$rows=array_slice($matches,$offset,$maxEntries);
-        foreach($rows as &$row)unset($row['order']);unset($row);
+        foreach($rows as &$row){unset($row['order']);if(!$includePrivateUrls)unset($row['stream_url']);}unset($row);
         return ['items'=>$rows, 'shown'=>count($rows), 'excluded'=>$skipped,
             'duplicates'=>$duplicates, 'total'=>$total, 'page'=>$page, 'pages'=>max(1,(int)ceil($total/$maxEntries)), 'truncated'=>$total>$maxEntries];
     }
