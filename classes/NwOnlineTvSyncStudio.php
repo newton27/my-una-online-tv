@@ -29,7 +29,7 @@ final class NwOnlineTvSyncStudio
                 if(($action==='approve'||$action==='reject')&&$r['approval_status']!=='pending')continue;
                 if($action==='enable'&&($r['approval_status']!=='approved'||$r['enabled']))continue;
                 if($action==='disable'&&!$r['enabled'])continue;
-                $html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="'.$action.'">'.$label.'</button></form> ';
+                $html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="'.$action.'" style="min-height:34px;padding:5px 14px;border:1px solid #617186;border-radius:7px;cursor:pointer">'.$label.'</button></form> ';
             }
             $html.='</div></td></tr>';
         }
