@@ -23,15 +23,15 @@ final class NwOnlineTvSyncStudio
         $html.='<h3>IPTV source list</h3><p class="nwotv-results">Sources require approval. Enabling a source does not start an import; external playlist fetching is not active yet.</p>';
         $html.='<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Name</th><th>Origin</th><th>Approval</th><th>Enabled</th><th>Actions</th></tr></thead><tbody>';
         foreach($registry as $r){
-            $html.='<tr><td>'.self::h($r['title']).'</td><td>'.self::h($r['origin']).'</td><td>'.self::h($r['approval_status']).'</td><td>'.((int)$r['enabled']?'Yes':'No').'</td><td>';
-            if($r['origin']==='webmaster')$html.='<a href="module.php?name=nw_online_tv&amp;page=sync&amp;edit_source='.(int)$r['id'].'">Edit</a> ';
+            $html.='<tr><td>'.self::h($r['title']).'</td><td>'.self::h($r['origin']).'</td><td>'.self::h($r['approval_status']).'</td><td>'.((int)$r['enabled']?'Yes':'No').'</td><td><div class="nwotv-source-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+            if($r['origin']==='webmaster')$html.='<a class="nwotv-source-action-link" href="module.php?name=nw_online_tv&amp;page=sync&amp;edit_source='.(int)$r['id'].'" style="display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:5px 14px;border-radius:7px;border:1px solid #617186;text-decoration:none">Edit</a>';
             foreach(['approve'=>'Approve','reject'=>'Reject','enable'=>'Enable','disable'=>'Disable'] as $action=>$label){
                 if(($action==='approve'||$action==='reject')&&$r['approval_status']!=='pending')continue;
                 if($action==='enable'&&($r['approval_status']!=='approved'||$r['enabled']))continue;
                 if($action==='disable'&&!$r['enabled'])continue;
-                $html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="'.$action.'">'.$label.'</button></form> ';
+                $html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="'.$action.'">'.$label.'</button></form> ';
             }
-            $html.='</td></tr>';
+            $html.='</div></td></tr>';
         }
         if(!$registry)$html.='<tr><td colspan="5">No IPTV sources registered yet.</td></tr>';
         $html.='</tbody></table></div><h3>'.($edit?'Edit webmaster source':'Add IPTV source').'</h3>';
