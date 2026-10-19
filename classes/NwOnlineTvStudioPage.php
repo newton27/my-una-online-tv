@@ -131,7 +131,12 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                         $action=(string)($_POST['source_action']??'');
                         $id=filter_var($_POST['source_id']??0,FILTER_VALIDATE_INT);
                         if($id===false || $id<0)throw new InvalidArgumentException('Invalid source ID.');
-                        if($action==='delete_preview'){
+                        if($action==='classify'){
+                            require_once __DIR__.'/NwOnlineTvSourceClassification.php';
+                            $classification=isset($_POST['source_classification']) && is_string($_POST['source_classification']) ? $_POST['source_classification'] : '';
+                            NwOnlineTvSourceClassification::set($pdo,$id,$classification,$auth);
+                            $notice='<p class="nwotv-success" role="status">Source audience saved. No channels imported or published.</p>';
+                        } elseif($action==='delete_preview'){
                             $q=$pdo->prepare('SELECT title,enabled FROM nw_online_tv_sources WHERE id=?');$q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
                             if(!$row||(int)$row['enabled']!==0)throw new RuntimeException('Disable source before deleting.');
                             $notice='<section class="nwotv-preview"><h3>Confirm permanent source deletion</h3><p>Delete source <strong>'.htmlspecialchars($row['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</strong>? Its saved playlist address will be removed. Existing channels and reports will stay unchanged.</p><form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="expected_title" value="'.htmlspecialchars($row['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'"><button type="submit" name="source_action" value="delete_confirm" style="padding:10px 16px;border:1px solid #b65c66;border-radius:8px">Delete Source Permanently</button> <a href="module.php?name=nw_online_tv&amp;page=sync">Cancel</a></form></section>';
@@ -216,7 +221,7 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $notice.='</tbody></table></div><p>Preview only. Full stream URLs and query tokens are not displayed. No import action is available.</p></section>';
                         } elseif($action==='save')NwOnlineTvSourcePolicy::save($pdo,$id,(string)($_POST['source_title']??''),(string)($_POST['source_url']??''),$auth);
                         else NwOnlineTvSourcePolicy::moderate($pdo,$id,$action,$auth);
-                        if(!in_array($action,['preview_text','preview_source','review_selection','archive','restore','delete_preview','delete_confirm'],true))$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
+                        if(!in_array($action,['preview_text','preview_source','review_selection','archive','restore','delete_preview','delete_confirm','classify'],true))$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
                     } catch(Throwable $e){
                         error_log('nw_online_tv source action: '.get_class($e));
                         $notice='<p class="nwotv-alert" role="alert">'.($e instanceof DomainException?'This playlist URL is already registered. The existing source was not changed.':'Source change rejected. Check source status or your administrator session.').'</p>';
