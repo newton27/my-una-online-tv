@@ -143,7 +143,7 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $notice='<p class="nwotv-success" role="status">IPTV source '.($action==='archive'?'archived and disabled':'restored (still disabled)').'. Existing channels were not changed.</p>';
                         } elseif($action==='preview_source' || $action==='review_selection'){
                             if($id<1)throw new InvalidArgumentException('Invalid source.');
-                            $q=$pdo->prepare("SELECT playlist_url,origin FROM nw_online_tv_sources WHERE id=? AND approval_status='approved' AND enabled=1");
+                            $q=$pdo->prepare("SELECT s.playlist_url,s.origin FROM nw_online_tv_sources s LEFT JOIN nw_online_tv_source_archives a ON a.source_id=s.id WHERE s.id=? AND s.approval_status='approved' AND s.enabled=1 AND a.source_id IS NULL");
                             $q->execute([$id]); $src=$q->fetch(PDO::FETCH_ASSOC);
                             if(!$src)throw new RuntimeException('Source unavailable.');
                             // Member subscription URLs are not fetched or shared through a public catalog.
