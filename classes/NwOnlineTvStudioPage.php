@@ -142,10 +142,20 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             require_once __DIR__.'/NwOnlineTvPlaylistPreview.php';
                             $body=NwOnlineTvPlaylistFetcher::fetch((string)$src['playlist_url']);
                             $hashes=[];foreach($pdo->query('SELECT stream_hash FROM nw_online_tv_channels') as $entry)$hashes[$entry['stream_hash']]=true;
-                            $preview=NwOnlineTvPlaylistPreview::parse($body,$hashes);
-                            $notice='<section class="nwotv-preview"><h3>Preview Channels — no import performed</h3><p>Showing '.(int)$preview['shown'].' channels. Duplicates: '.(int)$preview['duplicates'].'. Excluded: '.(int)$preview['excluded'].'.</p><div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Channel</th><th>Host</th><th>Status</th></tr></thead><tbody>';
+                            $pageNumber=filter_var($_POST['preview_page']??1,FILTER_VALIDATE_INT,['options'=>['min_range'=>1,'max_range'=>10000]])?:1;
+                            $preview=NwOnlineTvPlaylistPreview::parse($body,$hashes,100,$pageNumber);
+                            $notice='<section class="nwotv-preview"><h3>Preview Channels — no import performed</h3><p>Showing '.(int)$preview['shown'].' of '.(int)$preview['total'].' channels (page '.(int)$preview['page'].' of '.(int)$preview['pages'].'). Duplicates: '.(int)$preview['duplicates'].'. Excluded: '.(int)$preview['excluded'].'.</p><div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Channel</th><th>Host</th><th>Status</th></tr></thead><tbody>';
                             foreach($preview['items'] as $item)$notice.='<tr><td>'.htmlspecialchars($item['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['host'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['status'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td></tr>';
-                            $notice.='</tbody></table></div></section>';
+                            $notice.='</tbody></table></div>';
+                            if($preview['pages']>1){
+                                $notice.='<div style="display:flex;gap:10px;align-items:center;margin-top:15px">';
+                                foreach([max(1,$pageNumber-1)=>'Previous',min($preview['pages'],$pageNumber+1)=>'Next'] as $number=>$label){
+                                    if($number===$pageNumber)continue;
+                                    $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$number.'"><button type="submit" name="source_action" value="preview_source">'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'</button></form>';
+                                }
+                                $notice.='</div>';
+                            }
+                            $notice.='</section>';
                         } elseif($action==='preview_text'){
                             require_once __DIR__ . '/NwOnlineTvPlaylistPreview.php';
                             $text=isset($_POST['playlist_text']) && is_string($_POST['playlist_text']) ? $_POST['playlist_text'] : '';
