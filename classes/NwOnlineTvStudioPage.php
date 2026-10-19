@@ -113,6 +113,20 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                 return $css . '<section class="nwotv-dashboard"><p class="nwotv-alert" role="alert">Channel list is temporarily unavailable. Check PHP error log.</p></section>';
             }
         }
+        if ($page === 'sync') {
+            try {
+                require_once __DIR__ . '/NwOnlineTvSyncStudio.php';
+                $pdo = new PDO(
+                    'mysql:host=' . BX_DATABASE_HOST . ';dbname=' . BX_DATABASE_NAME . ';charset=utf8mb4',
+                    BX_DATABASE_USER, BX_DATABASE_PASS,
+                    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+                );
+                return $css . NwOnlineTvSyncStudio::render($pdo);
+            } catch (Throwable $e) {
+                error_log('nw_online_tv Studio sync: ' . $e->getMessage());
+                return $css . '<section class="nwotv-dashboard"><p class="nwotv-alert" role="alert">Sync history is temporarily unavailable. Check PHP error log.</p></section>';
+            }
+        }
         if ($page === 'overview') {
             return $css . $error . NwOnlineTvDashboard::render($metrics);
         }
