@@ -55,6 +55,31 @@ CREATE TABLE IF NOT EXISTS `nw_online_tv_health_attempts` (
   KEY `channel_attempted` (`channel_id`, `attempted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Source registry required by Studio source approval, archiving and imports.
+CREATE TABLE IF NOT EXISTS `nw_online_tv_sources` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(120) NOT NULL,
+  `playlist_url` TEXT NOT NULL,
+  `origin` VARCHAR(24) NOT NULL DEFAULT 'webmaster',
+  `approval_status` VARCHAR(24) NOT NULL DEFAULT 'pending',
+  `enabled` TINYINT(1) NOT NULL DEFAULT 0,
+  `submitted_profile_id` INT NOT NULL DEFAULT 0,
+  `created_at` INT UNSIGNED NOT NULL,
+  `updated_at` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`), KEY `source_status` (`approval_status`,`enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS `nw_online_tv_source_archives` (
+  `source_id` INT UNSIGNED NOT NULL,
+  `archived_at` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`source_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS `nw_online_tv_source_classification` (
+  `source_id` INT UNSIGNED NOT NULL,
+  `classification` VARCHAR(24) NOT NULL,
+  `updated_at` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`source_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Register the native UNA Studio page and home launcher on fresh installs.
 SET @nw_page := (SELECT id FROM sys_std_pages WHERE name = 'nw_online_tv' LIMIT 1);
 INSERT INTO sys_std_pages (`index`, name, header, caption, icon)
