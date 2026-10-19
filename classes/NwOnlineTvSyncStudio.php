@@ -6,7 +6,7 @@ final class NwOnlineTvSyncStudio
     private static function h($v): string { return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
     public static function render(PDO $db): string
     {
-        $registry=$db->query('SELECT s.id,s.title,s.playlist_url,s.origin,s.approval_status,s.enabled,s.submitted_profile_id, a.archived_at,COALESCE(cl.classification,'unclassified') AS classification FROM nw_online_tv_sources s LEFT JOIN nw_online_tv_source_archives a ON a.source_id=s.id LEFT JOIN nw_online_tv_source_classification cl ON cl.source_id=s.id ORDER BY s.id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC);
+        $registry=$db->query('SELECT s.id,s.title,s.playlist_url,s.origin,s.approval_status,s.enabled,s.submitted_profile_id, a.archived_at,COALESCE(cl.classification,\'unclassified\') AS classification FROM nw_online_tv_sources s LEFT JOIN nw_online_tv_source_archives a ON a.source_id=s.id LEFT JOIN nw_online_tv_source_classification cl ON cl.source_id=s.id ORDER BY s.id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC);
         $sourceView=(string)($_GET['source_view']??'active');
         if(!in_array($sourceView,['active','archived','all'],true))$sourceView='active';
         $editId=filter_var($_GET['edit_source']??0,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]])?:0;
