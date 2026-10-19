@@ -5,3 +5,6 @@ DELETE FROM sys_std_pages WHERE name = 'nw_online_tv';
 DROP TABLE IF EXISTS `nw_online_tv_sync_runs`;
 DROP TABLE IF EXISTS `nw_online_tv_reports`;
 DROP TABLE IF EXISTS `nw_online_tv_channels`;
+DROP TABLE IF EXISTS `nw_online_tv_source_classification`;
+DROP TABLE IF EXISTS `nw_online_tv_source_archives`;
+DROP TABLE IF EXISTS `nw_online_tv_sources`;
