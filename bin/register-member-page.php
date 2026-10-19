@@ -8,7 +8,7 @@ $page='nw_online_tv_submit_feed';
 $check=$db->prepare('SELECT COUNT(*) FROM sys_objects_page WHERE object=?');
 $check->execute([$page]);
 if (!(int)$check->fetchColumn()) {
-    $sql="INSERT INTO sys_objects_page (object,title_system,title,module,layout_id,visible_for_levels,visible_for_levels_editable,uri,url,meta_description,meta_keywords,meta_robots,cache_lifetime,cache_editable,deletable,override_class_name,override_class_file) VALUES (?,?,?,?,5,2147483647,1,?,?, '', '', '',0,1,1,'','')";
+    $sql="INSERT INTO sys_objects_page (object,title_system,title,module,layout_id,visible_for_levels,visible_for_levels_editable,uri,url,content_info,meta_description,meta_keywords,meta_robots,cache_lifetime,cache_editable,deletable,override_class_name,override_class_file) VALUES (?,?,?,?,5,2147483647,1,?,?, '', '', '', '',0,1,1,'','')";
     $db->prepare($sql)->execute([$page,'Submit IPTV feed','Submit IPTV feed','nw_online_tv','online-tv-submit-feed','page.php?i=online-tv-submit-feed']);
     echo "Registered member submission page\n";
 } else echo "Page already registered\n";
