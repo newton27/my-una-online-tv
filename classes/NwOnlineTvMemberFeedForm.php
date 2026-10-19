@@ -31,10 +31,29 @@ final class NwOnlineTvMemberFeedForm
 
     public static function render(int $authenticatedProfileId, string $csrfToken, string $actionUrl, string $message=''): string
     {
-        if ($authenticatedProfileId < 1) return '<section class="nwotv-dashboard"><p>Sign in to submit a feed.</p></section>';
-        $out='<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Submit an IPTV feed</h2><p>Submit a public playlist you are authorized to share. Private subscription credentials must not be shared as a public channel catalog.</p></header>';
-        if ($message!=='') $out.='<p role="status">'.self::h($message).'</p>';
-        $out.='<form method="post" action="'.self::h($actionUrl).'"><input type="hidden" name="csrf_token" value="'.self::h($csrfToken).'"><label>Feed name <input required maxlength="120" name="feed_title"></label><label>HTTPS playlist URL <input required type="url" maxlength="2048" name="feed_url" autocomplete="off"></label><button type="submit" name="feed_action" value="submit">Submit for approval</button></form><p>Submissions are private, pending and disabled until reviewed. A submission does not trigger a network request or import.</p></section>';
+        $out = '<style>
+.nwotv-member-form{max-width:800px;margin:0 auto;padding:12px 4px 28px;color:inherit}
+.nwotv-member-form .nwotv-form-intro{font-size:15px;line-height:1.65;opacity:.82;margin:0 0 24px}
+.nwotv-member-form .nwotv-form-grid{display:grid;grid-template-columns:1fr;gap:22px}
+.nwotv-member-form .nwotv-field{display:flex;flex-direction:column;gap:9px;font-size:14px;font-weight:600}
+.nwotv-member-form .nwotv-input{display:block;width:100%;min-width:0;box-sizing:border-box;border:1px solid #79869b;border-radius:10px;background:rgba(255,255,255,.98);color:#172033;padding:13px 16px;min-height:48px;font-size:15px;line-height:1.4}
+.nwotv-member-form .nwotv-input:focus{outline:2px solid #4385e9;outline-offset:2px}
+.nwotv-member-form .nwotv-help{font-size:13px;font-weight:400;opacity:.72;line-height:1.5}
+.nwotv-member-form .nwotv-form-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:26px}
+.nwotv-member-form .nwotv-submit{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border:0;border-radius:9px;background:#2864bd;color:white;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer}
+.nwotv-member-form .nwotv-submit:hover{background:#1d529f}
+.nwotv-member-form .nwotv-privacy{margin:24px 0 0;padding:16px 18px;border:1px solid rgba(130,147,171,.35);border-radius:10px;line-height:1.6;font-size:13px;opacity:.9}
+.nwotv-member-form .nwotv-message{padding:12px 16px;border-radius:8px;border:1px solid #708cae;margin-bottom:20px}
+@media(max-width:640px){.nwotv-member-form{padding:8px 0 22px}.nwotv-member-form .nwotv-submit{width:100%}}
+</style><section class="nwotv-member-form">';
+        if ($authenticatedProfileId < 1) return $out.'<p>Please sign in to submit an IPTV feed.</p></section>';
+        $out .= '<p class="nwotv-form-intro">Share a publicly accessible IPTV playlist that you have permission to submit. Each submission is reviewed by a webmaster before it can be enabled.</p>';
+        if ($message !== '') $out .= '<p class="nwotv-message" role="status">'.self::h($message).'</p>';
+        $out .= '<form method="post" action="'.self::h($actionUrl).'"><input type="hidden" name="csrf_token" value="'.self::h($csrfToken).'"><div class="nwotv-form-grid">
+<label class="nwotv-field" for="nwotv-feed-name">Feed name<input class="nwotv-input" id="nwotv-feed-name" name="feed_title" type="text" maxlength="120" placeholder="Example: Community news channels" autocomplete="off" required><span class="nwotv-help">Choose a descriptive name for the webmaster to review.</span></label>
+<label class="nwotv-field" for="nwotv-feed-url">HTTPS playlist URL<input class="nwotv-input" id="nwotv-feed-url" name="feed_url" type="url" maxlength="2048" inputmode="url" placeholder="https://example.org/channels.m3u" autocomplete="off" spellcheck="false" required><span class="nwotv-help">Public HTTPS playlists only. Do not enter private subscription links, passwords or account tokens.</span></label>
+</div><div class="nwotv-form-actions"><button class="nwotv-submit" type="submit" name="feed_action" value="submit">Submit feed for review</button></div></form>
+<div class="nwotv-privacy"><strong>What happens next?</strong> Your submission remains pending and disabled until a webmaster reviews it. No channels are imported when you submit a feed.</div></section>';
         return $out;
     }
 }
