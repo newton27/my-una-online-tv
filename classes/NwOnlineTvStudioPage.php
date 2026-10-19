@@ -121,7 +121,25 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                     BX_DATABASE_USER, BX_DATABASE_PASS,
                     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
                 );
-                return $css . NwOnlineTvSyncStudio::render($pdo);
+                $notice='';
+                if (($_SERVER['REQUEST_METHOD']??'GET')==='POST') {
+                    try {
+                        require_once __DIR__ . '/NwOnlineTvSourcePolicy.php';
+                        $auth=function_exists('isAdmin') && isAdmin();
+                        $csrf=isset($_POST['csrf_token']) && is_string($_POST['csrf_token']) && BxDolForm::isCsrfTokenValid($_POST['csrf_token']);
+                        if (!$auth || !$csrf)throw new RuntimeException('Unauthorized source action.');
+                        $action=(string)($_POST['source_action']??'');
+                        $id=filter_var($_POST['source_id']??0,FILTER_VALIDATE_INT);
+                        if($id===false || $id<0)throw new InvalidArgumentException('Invalid source ID.');
+                        if($action==='save')NwOnlineTvSourcePolicy::save($pdo,$id,(string)($_POST['source_title']??''),(string)($_POST['source_url']??''),$auth);
+                        else NwOnlineTvSourcePolicy::moderate($pdo,$id,$action,$auth);
+                        $notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
+                    } catch(Throwable $e){
+                        error_log('nw_online_tv source action: '.get_class($e));
+                        $notice='<p class="nwotv-alert" role="alert">Source change rejected. Check the source fields and your administrator session.</p>';
+                    }
+                }
+                return $css . $notice . NwOnlineTvSyncStudio::render($pdo);
             } catch (Throwable $e) {
                 error_log('nw_online_tv Studio sync: ' . $e->getMessage());
                 return $css . '<section class="nwotv-dashboard"><p class="nwotv-alert" role="alert">Sync history is temporarily unavailable. Check PHP error log.</p></section>';
