@@ -65,4 +65,26 @@ final class NwOnlineTvSourcePolicy
             $db->commit();
         }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
     }
+    /** Archive flags kept separately from approval state; no channel changes. */
+    public static function archive(PDO $db,int $id,bool $archived,bool $authorized): void
+    {
+        if(!$authorized||$id<1)throw new RuntimeException('Invalid archive request.');
+        $db->beginTransaction();
+        try{
+            $q=$db->prepare('SELECT id FROM nw_online_tv_sources WHERE id=? FOR UPDATE');
+            $q->execute([$id]);
+            if(!$q->fetchColumn())throw new RuntimeException('Source not found.');
+            if($archived){
+                $q=$db->prepare('INSERT INTO nw_online_tv_source_archives (source_id,archived_at) VALUES (?,?) ON DUPLICATE KEY UPDATE archived_at=VALUES(archived_at)');
+                $q->execute([$id,time()]);
+                $q=$db->prepare('UPDATE nw_online_tv_sources SET enabled=0,updated_at=? WHERE id=?');
+                $q->execute([time(),$id]);
+            }else{
+                $q=$db->prepare('DELETE FROM nw_online_tv_source_archives WHERE source_id=?');
+                $q->execute([$id]);
+            }
+            $db->commit();
+        }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+    }
+
 }
