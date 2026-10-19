@@ -21,8 +21,15 @@ final class NwOnlineTvSourcePolicy
     public static function save(PDO $db, int $id, string $title, string $url, bool $authorized): int
     {
         if(!$authorized)throw new RuntimeException('Webmaster access required.');
-        [$title,$url]=self::validate($title,$url);
         if($id<0)throw new InvalidArgumentException('Invalid source identifier.');
+        if($id>0 && trim($url)===''){
+            $s=$db->prepare("SELECT playlist_url FROM nw_online_tv_sources WHERE id=? AND origin='webmaster'");
+            $s->execute([$id]);
+            $stored=$s->fetchColumn();
+            if($stored===false)throw new RuntimeException('Source not found.');
+            $url=(string)$stored;
+        }
+        [$title,$url]=self::validate($title,$url);
         if($id===0){
             $s=$db->prepare("INSERT INTO nw_online_tv_sources (title,playlist_url,origin,approval_status,enabled,submitted_profile_id,created_at,updated_at) VALUES (?,?,'webmaster','approved',0,0,?,?)");
             $s->execute([$title,$url,time(),time()]);
