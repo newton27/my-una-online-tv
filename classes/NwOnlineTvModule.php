@@ -41,7 +41,7 @@ class NwOnlineTvModule extends BxDolModule
             }
         }
         return NwOnlineTvMemberFeedForm::render($profileId, BxDolForm::getCsrfToken(),
-            htmlspecialchars((string)($_SERVER['REQUEST_URI'] ?? ''), ENT_QUOTES, 'UTF-8'), $message);
+            '', $message);
     }
 
 }
