@@ -9,7 +9,7 @@ final class NwOnlineTvSyncStudio
         $sources=['iptv-org'=>'iptv-org','free-tv'=>'Free-TV'];
         $source=(string)($_GET['source']??'iptv-org');
         if(!isset($sources[$source]))$source='iptv-org';
-        $registry=$db->query('SELECT id,title,playlist_url,origin,approval_status,enabled,submitted_profile_id FROM nw_online_tv_sources ORDER BY id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC);
+        $registry=$db->query('SELECT s.id,s.title,s.playlist_url,s.origin,s.approval_status,s.enabled,s.submitted_profile_id, a.archived_at FROM nw_online_tv_sources s LEFT JOIN nw_online_tv_source_archives a ON a.source_id=s.id ORDER BY s.id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC);
         $editId=filter_var($_GET['edit_source']??0,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]])?:0;
         $edit=null;foreach($registry as $item)if((int)$item['id']===$editId && $item['origin']==='webmaster')$edit=$item;
         $rows=$db->query('SELECT source,result,discovered,added,finished_at FROM nw_online_tv_sync_runs ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
@@ -20,18 +20,19 @@ final class NwOnlineTvSyncStudio
         foreach($sources as $key=>$label)$html.='<option value="'.self::h($key).'"'.($source===$key?' selected':'').'>'.self::h($label).'</option>';
         $html.='</select></label><button type="submit">View source</button></form>';
         $html.='<p class="nwotv-results">Selected source: <strong>'.self::h($sources[$source]).'</strong>. Import preview and apply controls will be available after isolated source-fetch and database-preservation tests pass.</p>';
-        $html.='<h3>IPTV source list</h3><p class="nwotv-results">Sources require approval. Preview Channels reads an approved webmaster playlist without importing anything. Member feeds remain private.</p>';
+        $html.='<h3>IPTV source list</h3><p class="nwotv-results">Archive an unused source to disable it without deleting channels. Restore when needed. Approved webmaster playlists can be previewed; member feeds stay private.</p>';
         $html.='<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Name</th><th>Origin</th><th>Approval</th><th>Enabled</th><th>Actions</th></tr></thead><tbody>';
         foreach($registry as $r){
-            $html.='<tr><td>'.self::h($r['title']).'</td><td>'.self::h($r['origin']).'</td><td>'.self::h($r['approval_status']).'</td><td>'.((int)$r['enabled']?'Yes':'No').'</td><td><div class="nwotv-source-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
-            if($r['origin']==='webmaster' && $r['approval_status']==='approved' && (int)$r['enabled']===1)$html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="preview_source" style="min-height:34px;padding:5px 14px;border:1px solid #617186;border-radius:7px;cursor:pointer">Preview Channels</button></form>';
-            if($r['origin']==='webmaster')$html.='<a class="nwotv-source-action-link" href="module.php?name=nw_online_tv&amp;page=sync&amp;edit_source='.(int)$r['id'].'" style="display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:5px 14px;border-radius:7px;border:1px solid #617186;text-decoration:none">Edit</a>';
+            $html.='<tr><td>'.self::h($r['title']).($r['archived_at']?' <small>(Archived)</small>':'').'</td><td>'.self::h($r['origin']).'</td><td>'.self::h($r['approval_status']).'</td><td>'.((int)$r['enabled']?'Yes':'No').'</td><td><div class="nwotv-source-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+            if(!$r['archived_at'] && $r['origin']==='webmaster' && $r['approval_status']==='approved' && (int)$r['enabled']===1)$html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="preview_source" style="min-height:34px;padding:5px 14px;border:1px solid #617186;border-radius:7px;cursor:pointer">Preview Channels</button></form>';
+            if(!$r['archived_at'] && $r['origin']==='webmaster')$html.='<a class="nwotv-source-action-link" href="module.php?name=nw_online_tv&amp;page=sync&amp;edit_source='.(int)$r['id'].'" style="display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:5px 14px;border-radius:7px;border:1px solid #617186;text-decoration:none">Edit</a>';
             foreach(['approve'=>'Approve','reject'=>'Reject','enable'=>'Enable','disable'=>'Disable'] as $action=>$label){
                 if(($action==='approve'||$action==='reject')&&$r['approval_status']!=='pending')continue;
-                if($action==='enable'&&($r['approval_status']!=='approved'||$r['enabled']))continue;
+                if($action==='enable'&&($r['approval_status']!=='approved'||$r['enabled']||$r['archived_at']))continue;
                 if($action==='disable'&&!$r['enabled'])continue;
                 $html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="'.$action.'" style="min-height:34px;padding:5px 14px;border:1px solid #617186;border-radius:7px;cursor:pointer">'.$label.'</button></form> ';
             }
+            $html.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:inline-flex;margin:0"><input type="hidden" name="csrf_token" value="'.self::h(BxDolForm::getCsrfToken()).'"><input type="hidden" name="source_id" value="'.(int)$r['id'].'"><button type="submit" name="source_action" value="'.($r['archived_at']?'restore':'archive').'" style="min-height:34px;padding:5px 14px;border:1px solid #617186;border-radius:7px;cursor:pointer">'.($r['archived_at']?'Restore':'Archive').'</button></form>';
             $html.='</div></td></tr>';
         }
         if(!$registry)$html.='<tr><td colspan="5">No IPTV sources registered yet.</td></tr>';
