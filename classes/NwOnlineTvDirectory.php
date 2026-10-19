@@ -37,6 +37,7 @@ final class NwOnlineTvDirectory
         $pages = max(1, (int)($result['pages'] ?? 1));
         $out = '<section class="nwotv-directory" aria-label="Online TV channels">';
         $out .= '<header><h2>Channel directory</h2><p>' . $total . ' channels · Page ' . $page . ' of ' . $pages . '</p></header>';
+        $out .= '<p style="margin:14px 0 20px"><a href="/online-tv-submit-feed" style="display:inline-flex;padding:11px 18px;background:#2864bd;color:white;border-radius:8px;text-decoration:none;font-weight:600">Submit IPTV Feed</a></p>';
         $out .= '<div class="nwotv-table-scroll"><table><thead><tr><th scope="col">Channel</th><th scope="col">Category</th><th scope="col">Country</th><th scope="col">Status</th><th scope="col">Review</th></tr></thead><tbody>';
         foreach (($result['items'] ?? []) as $channel) {
             if (!is_array($channel)) continue;
