@@ -143,7 +143,10 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $body=NwOnlineTvPlaylistFetcher::fetch((string)$src['playlist_url']);
                             $hashes=[];foreach($pdo->query('SELECT stream_hash FROM nw_online_tv_channels') as $entry)$hashes[$entry['stream_hash']]=true;
                             $pageNumber=filter_var($_POST['preview_page']??1,FILTER_VALIDATE_INT,['options'=>['min_range'=>1,'max_range'=>10000]])?:1;
-                            $preview=NwOnlineTvPlaylistPreview::parse($body,$hashes,100,$pageNumber);
+                            $search=mb_substr(trim((string)($_POST['filter_search']??'')),0,120);
+                            $filterStatus=(string)($_POST['filter_status']??'all');
+                            $filterSort=(string)($_POST['filter_sort']??'original');
+                            $preview=NwOnlineTvPlaylistPreview::parse($body,$hashes,100,$pageNumber,$search,$filterStatus,$filterSort);
                             $chosen=[];
                             if($action==='review_selection'){
                                 $raw=isset($_POST['selection']) && is_array($_POST['selection']) ? $_POST['selection'] : [];
@@ -154,18 +157,23 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                                 }
                             }
                             $notice='<section class="nwotv-preview"><h3>'.($action==='review_selection'?'Selection review — no import performed':'Preview Channels — no import performed').'</h3><p>Showing '.(int)$preview['shown'].' of '.(int)$preview['total'].' channels (page '.(int)$preview['page'].' of '.(int)$preview['pages'].').</p>';
+                            $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:16px 0"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><label>Search channels<input type="search" name="filter_search" maxlength="120" value="'.htmlspecialchars($search,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'" placeholder="Channel name"></label><label>Status<select name="filter_status">';
+                            foreach(['all'=>'All channels','candidate'=>'Candidates','duplicate'=>'Duplicates'] as $value=>$label)$notice.='<option value="'.$value.'"'.($filterStatus===$value?' selected':'').'>'.$label.'</option>';
+                            $notice.='</select></label><label>Sort<select name="filter_sort">';
+                            foreach(['original'=>'Playlist order','name'=>'Name A–Z','name_desc'=>'Name Z–A','status'=>'Status'] as $value=>$label)$notice.='<option value="'.$value.'"'.($filterSort===$value?' selected':'').'>'.$label.'</option>';
+                            $notice.='</select></label><button class="nwotv-confirm-cancel" style="cursor:pointer;padding:9px 16px;border-radius:7px;border:1px solid #617186" type="submit" name="source_action" value="preview_source">Apply Filters</button></form>';
                             $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$pageNumber.'">';
                             $notice.='<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th><input type="checkbox" id="nwotv-select-page" aria-label="Select all on page"></th><th>Channel</th><th>Host</th><th>Status</th></tr></thead><tbody>';
                             foreach($preview['items'] as $index=>$item){
                                 $notice.='<tr><td><input type="checkbox" class="nwotv-select-channel" name="selection[]" value="'.(int)$index.'"'.(isset($chosen[$index])?' checked':'').'></td><td>'.htmlspecialchars($item['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['host'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['status'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td></tr>';
                             }
-                            $notice.='</tbody></table></div><p><button type="submit" name="source_action" value="review_selection">Review Selected Channels</button> <strong>No import will be performed.</strong></p></form>';
+                            $notice.='</tbody></table></div><p><button type="submit" class="nwotv-confirm-cancel" style="cursor:pointer;padding:10px 18px;border:1px solid #617186;border-radius:7px" name="source_action" value="review_selection">Review Selected Channels</button> <strong>No import will be performed.</strong></p></form>';
                             $notice.='<script>(function(){var all=document.getElementById("nwotv-select-page");if(!all)return;all.addEventListener("change",function(){document.querySelectorAll(".nwotv-select-channel").forEach(function(c){c.checked=all.checked;});});})();</script>';
                             if($preview['pages']>1){
                                 $notice.='<div style="display:flex;gap:10px;align-items:center;margin-top:15px">';
                                 foreach([max(1,$pageNumber-1)=>'Previous',min($preview['pages'],$pageNumber+1)=>'Next'] as $number=>$label){
                                     if($number===$pageNumber)continue;
-                                    $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$number.'"><button type="submit" name="source_action" value="preview_source">'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'</button></form>';
+                                    $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$number.'"><button type="submit" class="nwotv-confirm-cancel" style="cursor:pointer;padding:9px 18px;border:1px solid #617186;border-radius:7px" name="source_action" value="preview_source">'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'</button></form>';
                                 }
                                 $notice.='</div>';
                             }
