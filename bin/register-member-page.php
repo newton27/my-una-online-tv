@@ -1,7 +1,7 @@
 <?php
 /** Idempotent CLI-only registration of UNA member submission page. No feed data modified. */
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit; }
-chdir(dirname(__DIR__, 5));
+chdir(dirname(__DIR__, 4));
 require_once 'inc/header.inc.php';
 $db = new PDO('mysql:host='.BX_DATABASE_HOST.';dbname='.BX_DATABASE_NAME.';charset=utf8mb4', BX_DATABASE_USER, BX_DATABASE_PASS,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 $page='nw_online_tv_submit_feed';
