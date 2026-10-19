@@ -11,11 +11,11 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
         $this->sPageDefault = 'overview';
         if ($sPage === '') $this->sPage = 'overview';
         $this->aMenuItems = [
-            'overview' => ['name' => 'overview', 'icon' => 'tachometer', 'title' => 'Overview'],
+            'overview' => ['name' => 'overview', 'icon' => 'home', 'title' => 'Overview'],
             'channels' => ['name' => 'channels', 'icon' => 'tv', 'title' => 'Channels'],
-            'sync' => ['name' => 'sync', 'icon' => 'refresh', 'title' => 'Sync'],
+            'sync' => ['name' => 'sync', 'icon' => 'repeat', 'title' => 'Sync'],
             'reports' => ['name' => 'reports', 'icon' => 'flag', 'title' => 'Reports'],
-            'settings' => ['name' => 'settings', 'icon' => 'cog', 'title' => 'Settings'],
+            'settings' => ['name' => 'settings', 'icon' => 'cogs', 'title' => 'Settings'],
         ];
     }
 
