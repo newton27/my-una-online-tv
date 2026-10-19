@@ -210,20 +210,19 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             foreach(['original'=>'Playlist order','name'=>'Name A–Z','name_desc'=>'Name Z–A','status'=>'Status'] as $value=>$label)$notice.='<option value="'.$value.'"'.($filterSort===$value?' selected':'').'>'.$label.'</option>';
                             $notice.='</select></label><button class="nwotv-action-btn" type="submit" name="source_action" value="preview_source">Apply Filters</button></form>';
                             $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$pageNumber.'">';
+                            $toolbar='<div class="nwotv-action-row"><button type="submit" class="nwotv-action-btn" name="source_action" value="review_selection">Review Selected Channels</button><strong>No import will be performed.</strong>';
+                            if($pageNumber>1)$toolbar.='<button type="submit" class="nwotv-action-btn" name="source_action" value="preview_source" onclick="this.form.elements[\'preview_page\'].value='.($pageNumber-1).'">Previous</button>';
+                            if($pageNumber<$preview['pages'])$toolbar.='<button type="submit" class="nwotv-action-btn" name="source_action" value="preview_source" onclick="this.form.elements[\'preview_page\'].value='.($pageNumber+1).'">Next</button>';
+                            $toolbar.='</div>';
+                            $notice.='<input type="hidden" name="filter_search" value="'.htmlspecialchars($search,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'"><input type="hidden" name="filter_status" value="'.htmlspecialchars($filterStatus,ENT_QUOTES,'UTF-8').'"><input type="hidden" name="filter_sort" value="'.htmlspecialchars($filterSort,ENT_QUOTES,'UTF-8').'">'.$toolbar;
                             $notice.='<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th><input type="checkbox" id="nwotv-select-page" aria-label="Select all on page"></th><th>Channel</th><th>Host</th><th>Status</th></tr></thead><tbody>';
                             foreach($preview['items'] as $index=>$item){
+                                if($index===50)$notice.='<tr><td colspan="4" style="padding:12px 8px">'.$toolbar.'</td></tr>';
+
                                 $notice.='<tr><td><input type="checkbox" class="nwotv-select-channel" name="selection[]" value="'.(int)$index.'"'.(isset($chosen[$index])?' checked':'').'></td><td>'.htmlspecialchars($item['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['host'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['status'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td></tr>';
                             }
-                            $notice.='</tbody></table></div><p><button type="submit" class="nwotv-action-btn" name="source_action" value="review_selection">Review Selected Channels</button> <strong>No import will be performed.</strong></p></form>';
+                            $notice.='</tbody></table></div>'.$toolbar.'</form>';
                             $notice.='<script>(function(){var all=document.getElementById("nwotv-select-page");if(!all)return;all.addEventListener("change",function(){document.querySelectorAll(".nwotv-select-channel").forEach(function(c){c.checked=all.checked;});});})();</script>';
-                            if($preview['pages']>1){
-                                $notice.='<div style="display:flex;gap:10px;align-items:center;margin-top:15px">';
-                                foreach([max(1,$pageNumber-1)=>'Previous',min($preview['pages'],$pageNumber+1)=>'Next'] as $number=>$label){
-                                    if($number===$pageNumber)continue;
-                                    $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$number.'"><button type="submit" class="nwotv-action-btn" name="source_action" value="preview_source">'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'</button></form>';
-                                }
-                                $notice.='</div>';
-                            }
                             $notice.='</section>';
                             if(isset($reviewNotice)){
                                 require_once __DIR__.'/NwOnlineTvSourceClassification.php';
