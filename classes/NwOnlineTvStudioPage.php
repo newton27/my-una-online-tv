@@ -166,6 +166,17 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                                     $chosen[(int)$index]=true;
                                 }
                             }
+                            if($action==='review_selection'){
+                                $reviewed=[];
+                                foreach(array_keys($chosen) as $selectedIndex){
+                                    $entry=$preview['items'][$selectedIndex];
+                                    if($entry['duplicate'])continue;
+                                    $reviewed[]=$entry;
+                                }
+                                $reviewNotice='<section class="nwotv-preview" role="status"><h3>Review selected channels — import not yet enabled</h3><p><strong>'.count($reviewed).'</strong> eligible channel(s) selected from this page. '.(count($chosen)-count($reviewed)).' duplicates excluded.</p><div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Channel</th><th>Host</th><th>Status</th></tr></thead><tbody>';
+                                foreach($reviewed as $entry)$reviewNotice.='<tr><td>'.htmlspecialchars($entry['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($entry['host'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>Ready for further review</td></tr>';
+                                $reviewNotice.='</tbody></table></div><p>No channels imported. Before importing, the source must have an explicit adult/general-audience classification and channel publication safeguards.</p></section>';
+                            }
                             $notice='<section class="nwotv-preview"><h3>'.($action==='review_selection'?'Selection review — no import performed':'Preview Channels — no import performed').'</h3><p>Showing '.(int)$preview['shown'].' of '.(int)$preview['total'].' channels (page '.(int)$preview['page'].' of '.(int)$preview['pages'].').</p>';
                             $notice.='<style>.nwotv-preview{width:100%;max-width:none;box-sizing:border-box}.nwotv-preview .nwotv-filterbar{display:grid!important;grid-template-columns:minmax(230px,2fr) minmax(150px,1fr) minmax(150px,1fr) auto;gap:14px;align-items:end;width:100%;box-sizing:border-box;padding:18px;margin:18px 0;background:rgba(120,140,165,.09);border:1px solid rgba(120,140,165,.24);border-radius:12px}.nwotv-preview .nwotv-filterbar label{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px;width:auto!important;margin:0!important;font-weight:600;text-align:left!important}.nwotv-preview .nwotv-filterbar input,.nwotv-preview .nwotv-filterbar select{width:100%!important;min-width:0;min-height:42px;padding:9px 12px;border:1px solid #8493a6;border-radius:8px;background:var(--bx-color-box,white);color:inherit;box-sizing:border-box}.nwotv-preview .nwotv-action-btn{display:inline-flex!important;align-items:center;justify-content:center;min-height:42px;padding:9px 18px!important;border:1px solid #62758b!important;border-radius:8px!important;cursor:pointer!important;font-weight:600!important;text-decoration:none!important;white-space:nowrap}.nwotv-preview .nwotv-table-wrap{width:100%!important;max-width:none!important;overflow-x:auto}.nwotv-preview .nwotv-table{width:100%!important;min-width:600px}.nwotv-preview .nwotv-action-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:18px 0}@media(max-width:850px){.nwotv-preview .nwotv-filterbar{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.nwotv-preview .nwotv-filterbar{grid-template-columns:1fr}}</style>'; 
                             $notice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" class="nwotv-filterbar"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><label>Search channels<input type="search" name="filter_search" maxlength="120" value="'.htmlspecialchars($search,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'" placeholder="Channel name"></label><label>Status<select name="filter_status">';
@@ -189,6 +200,7 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                                 $notice.='</div>';
                             }
                             $notice.='</section>';
+                            if(isset($reviewNotice))$notice=$reviewNotice.$notice;
                         } elseif($action==='preview_text'){
                             require_once __DIR__ . '/NwOnlineTvPlaylistPreview.php';
                             $text=isset($_POST['playlist_text']) && is_string($_POST['playlist_text']) ? $_POST['playlist_text'] : '';
