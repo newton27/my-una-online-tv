@@ -13,7 +13,7 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
         $this->aMenuItems = [
             'overview' => ['name' => 'overview', 'icon' => 'home', 'title' => 'Overview'],
             'channels' => ['name' => 'channels', 'icon' => 'tv', 'title' => 'Channels'],
-            'sync' => ['name' => 'sync', 'icon' => 'repeat', 'title' => 'Sync'],
+            'sync' => ['name' => 'sync', 'icon' => 'refresh', 'title' => 'Sync'],
             'reports' => ['name' => 'reports', 'icon' => 'flag', 'title' => 'Reports'],
             'settings' => ['name' => 'settings', 'icon' => 'cogs', 'title' => 'Settings'],
         ];
