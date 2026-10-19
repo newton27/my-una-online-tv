@@ -131,7 +131,22 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                         $action=(string)($_POST['source_action']??'');
                         $id=filter_var($_POST['source_id']??0,FILTER_VALIDATE_INT);
                         if($id===false || $id<0)throw new InvalidArgumentException('Invalid source ID.');
-                        if($action==='preview_text'){
+                        if($action==='preview_source'){
+                            if($id<1)throw new InvalidArgumentException('Invalid source.');
+                            $q=$pdo->prepare("SELECT playlist_url,origin FROM nw_online_tv_sources WHERE id=? AND approval_status='approved' AND enabled=1");
+                            $q->execute([$id]); $src=$q->fetch(PDO::FETCH_ASSOC);
+                            if(!$src)throw new RuntimeException('Source unavailable.');
+                            // Member subscription URLs are not fetched or shared through a public catalog.
+                            if($src['origin']!=='webmaster')throw new RuntimeException('Member feeds require separate private-access review.');
+                            require_once __DIR__.'/NwOnlineTvPlaylistFetcher.php';
+                            require_once __DIR__.'/NwOnlineTvPlaylistPreview.php';
+                            $body=NwOnlineTvPlaylistFetcher::fetch((string)$src['playlist_url']);
+                            $hashes=[];foreach($pdo->query('SELECT stream_hash FROM nw_online_tv_channels') as $entry)$hashes[$entry['stream_hash']]=true;
+                            $preview=NwOnlineTvPlaylistPreview::parse($body,$hashes);
+                            $notice='<section class="nwotv-preview"><h3>Preview Channels — no import performed</h3><p>Showing '.(int)$preview['shown'].' channels. Duplicates: '.(int)$preview['duplicates'].'. Excluded: '.(int)$preview['excluded'].'.</p><div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Channel</th><th>Host</th><th>Status</th></tr></thead><tbody>';
+                            foreach($preview['items'] as $item)$notice.='<tr><td>'.htmlspecialchars($item['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['host'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($item['status'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td></tr>';
+                            $notice.='</tbody></table></div></section>';
+                        } elseif($action==='preview_text'){
                             require_once __DIR__ . '/NwOnlineTvPlaylistPreview.php';
                             $text=isset($_POST['playlist_text']) && is_string($_POST['playlist_text']) ? $_POST['playlist_text'] : '';
                             $hashes=[];
@@ -142,7 +157,7 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $notice.='</tbody></table></div><p>Preview only. Full stream URLs and query tokens are not displayed. No import action is available.</p></section>';
                         } elseif($action==='save')NwOnlineTvSourcePolicy::save($pdo,$id,(string)($_POST['source_title']??''),(string)($_POST['source_url']??''),$auth);
                         else NwOnlineTvSourcePolicy::moderate($pdo,$id,$action,$auth);
-                        if($action!=='preview_text')$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
+                        if(!in_array($action,['preview_text','preview_source'],true))$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
                     } catch(Throwable $e){
                         error_log('nw_online_tv source action: '.get_class($e));
                         $notice='<p class="nwotv-alert" role="alert">Source change rejected. Check the source fields and your administrator session.</p>';
