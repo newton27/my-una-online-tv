@@ -30,6 +30,9 @@ final class NwOnlineTvSourcePolicy
             $url=(string)$stored;
         }
         [$title,$url]=self::validate($title,$url);
+        $dup=$db->prepare('SELECT id FROM nw_online_tv_sources WHERE playlist_url=? AND id<>? LIMIT 1');
+        $dup->execute([$url,$id]);
+        if($dup->fetchColumn()!==false)throw new DomainException('Playlist already registered.');
         if($id===0){
             $s=$db->prepare("INSERT INTO nw_online_tv_sources (title,playlist_url,origin,approval_status,enabled,submitted_profile_id,created_at,updated_at) VALUES (?,?,'webmaster','approved',0,0,?,?)");
             $s->execute([$title,$url,time(),time()]);
@@ -83,6 +86,23 @@ final class NwOnlineTvSourcePolicy
                 $q=$db->prepare('DELETE FROM nw_online_tv_source_archives WHERE source_id=?');
                 $q->execute([$id]);
             }
+            $db->commit();
+        }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+    }
+
+    public static function delete(PDO $db,int $id,string $expectedTitle,bool $authorized): void
+    {
+        if(!$authorized||$id<1)throw new RuntimeException('Unauthorized source deletion.');
+        $db->beginTransaction();
+        try{
+            $q=$db->prepare('SELECT title,enabled FROM nw_online_tv_sources WHERE id=? FOR UPDATE');
+            $q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$row||!hash_equals((string)$row['title'],$expectedTitle)||((int)$row['enabled'])!==0)
+                throw new RuntimeException('Source changed or must be disabled before deletion.');
+            $db->prepare('DELETE FROM nw_online_tv_source_archives WHERE source_id=?')->execute([$id]);
+            $q=$db->prepare('DELETE FROM nw_online_tv_sources WHERE id=?');
+            $q->execute([$id]);
+            if($q->rowCount()!==1)throw new RuntimeException('Source deletion was not completed.');
             $db->commit();
         }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
     }
