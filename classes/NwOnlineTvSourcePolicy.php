@@ -47,6 +47,9 @@ final class NwOnlineTvSourcePolicy
     {
         if($profileId<1)throw new RuntimeException('Sign-in required.');
         [$title,$url]=self::validate($title,$url);
+        $duplicate=$db->prepare('SELECT id FROM nw_online_tv_sources WHERE playlist_url=? LIMIT 1');
+        $duplicate->execute([$url]);
+        if($duplicate->fetchColumn()!==false)throw new DomainException('Playlist already registered.');
         $s=$db->prepare("INSERT INTO nw_online_tv_sources (title,playlist_url,origin,approval_status,enabled,submitted_profile_id,created_at,updated_at) VALUES (?,?,'member','pending',0,?,?,?)");
         $s->execute([$title,$url,$profileId,time(),time()]);
         return (int)$db->lastInsertId();
@@ -62,7 +65,12 @@ final class NwOnlineTvSourcePolicy
             $status=$row['approval_status'];
             if($action==='approve' && $status==='pending')$db->prepare("UPDATE nw_online_tv_sources SET approval_status='approved',enabled=0,updated_at=? WHERE id=?")->execute([time(),$id]);
             elseif($action==='reject' && $status==='pending')$db->prepare("UPDATE nw_online_tv_sources SET approval_status='rejected',enabled=0,updated_at=? WHERE id=?")->execute([time(),$id]);
-            elseif($action==='enable' && $status==='approved')$db->prepare('UPDATE nw_online_tv_sources SET enabled=1,updated_at=? WHERE id=?')->execute([time(),$id]);
+            elseif($action==='enable' && $status==='approved'){
+                $check=$db->prepare('SELECT source_id FROM nw_online_tv_source_archives WHERE source_id=?');
+                $check->execute([$id]);
+                if($check->fetchColumn()!==false)throw new RuntimeException('Restore source before enabling.');
+                $db->prepare('UPDATE nw_online_tv_sources SET enabled=1,updated_at=? WHERE id=?')->execute([time(),$id]);
+            }
             elseif($action==='disable')$db->prepare('UPDATE nw_online_tv_sources SET enabled=0,updated_at=? WHERE id=?')->execute([time(),$id]);
             else throw new RuntimeException('Invalid source transition.');
             $db->commit();
