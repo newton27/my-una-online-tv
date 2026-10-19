@@ -6,9 +6,6 @@ final class NwOnlineTvSyncStudio
     private static function h($v): string { return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
     public static function render(PDO $db): string
     {
-        $sources=['iptv-org'=>'iptv-org','free-tv'=>'Free-TV'];
-        $source=(string)($_GET['source']??'iptv-org');
-        if(!isset($sources[$source]))$source='iptv-org';
         $registry=$db->query('SELECT s.id,s.title,s.playlist_url,s.origin,s.approval_status,s.enabled,s.submitted_profile_id, a.archived_at FROM nw_online_tv_sources s LEFT JOIN nw_online_tv_source_archives a ON a.source_id=s.id ORDER BY s.id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC);
         $sourceView=(string)($_GET['source_view']??'active');
         if(!in_array($sourceView,['active','archived','all'],true))$sourceView='active';
@@ -18,10 +15,6 @@ final class NwOnlineTvSyncStudio
         $current=$db->query('SELECT source,COUNT(*) AS channels FROM nw_online_tv_channels GROUP BY source ORDER BY channels DESC LIMIT 20')->fetchAll(PDO::FETCH_ASSOC);
         $html='<section class="nwotv-dashboard nwotv-directory"><header class="nwotv-heading"><h2>Channel synchronization</h2><p>Review catalog sources and recent results before importing channels. No existing channel edits are replaced.</p></header>';
         $html.='<div class="nwotv-bulk-toolbar"><strong>Automatic catalog import: Not enabled</strong><span>Health URL checks run separately and never delete listings.</span></div>';
-        $html.='<form class="nwotv-filters" method="get" action="module.php"><input type="hidden" name="name" value="nw_online_tv"><input type="hidden" name="page" value="sync"><label>Catalog source <select name="source">';
-        foreach($sources as $key=>$label)$html.='<option value="'.self::h($key).'"'.($source===$key?' selected':'').'>'.self::h($label).'</option>';
-        $html.='</select></label><button type="submit">View source</button></form>';
-        $html.='<p class="nwotv-results">Selected source: <strong>'.self::h($sources[$source]).'</strong>. Import preview and apply controls will be available after isolated source-fetch and database-preservation tests pass.</p>';
         $html.='<h3>IPTV source list</h3><p class="nwotv-results">Archive an unused source to disable it without deleting channels. Restore when needed. Approved webmaster playlists can be previewed; member feeds stay private.</p>';
         $html.='<form method="get" action="module.php" style="display:flex;gap:12px;align-items:center;margin:14px 0"><input type="hidden" name="name" value="nw_online_tv"><input type="hidden" name="page" value="sync"><label>Show sources <select name="source_view">';foreach(['active'=>'Active','archived'=>'Archived','all'=>'All'] as $key=>$name)$html.='<option value="'.$key.'"'.($sourceView===$key?' selected':'').'>'.$name.'</option>';$html.='</select></label><button type="submit" style="padding:8px 16px;border:1px solid #718299;border-radius:8px">Filter sources</button></form>';
         $html.='<div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Name</th><th>Origin</th><th>Approval</th><th>Enabled</th><th>Actions</th></tr></thead><tbody>';
