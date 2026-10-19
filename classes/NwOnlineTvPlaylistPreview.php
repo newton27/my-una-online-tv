@@ -24,7 +24,7 @@ final class NwOnlineTvPlaylistPreview
             // Sensitive tokens, full URL, query parameters and fragments are never returned.
             $url = filter_var($line, FILTER_VALIDATE_URL) ? parse_url($line) : false;
             $safe = is_array($url) && strtolower($url['scheme'] ?? '') === 'https'
-                && !empty($url['host']) && !isset($url['user'], $url['pass'])
+                && !empty($url['host']) && !isset($url['user']) && !isset($url['pass'])
                 && !isset($url['fragment']) && (!isset($url['port']) || (int)$url['port'] === 443)
                 && !filter_var($url['host'], FILTER_VALIDATE_IP)
                 && strpos($url['host'], '.') !== false
