@@ -16,7 +16,7 @@ $check=$db->prepare("SELECT COUNT(*) FROM sys_pages_blocks WHERE object=? AND mo
 $check->execute([$page,'nw_online_tv']);
 if (!(int)$check->fetchColumn()) {
     $service=serialize(['module'=>'nw_online_tv','method'=>'get_member_feed_submission_markup']);
-    $sql="INSERT INTO sys_pages_blocks (object,cell_id,module,title_system,title,icon,designbox_id,visible_for_levels,type,content,text,text_updated,deletable,copyable,`order`) VALUES (?,1,?,?,?,'',11,2147483647,'service',?,'',0,1,0,1)";
+    $sql="INSERT INTO sys_pages_blocks (object,cell_id,module,title_system,title,icon,designbox_id,visible_for_levels,type,content,content_empty,text,text_updated,help,config_api,deletable,copyable,`order`) VALUES (?,1,?,?,?,'',11,2147483647,'service',?,'','',0,'','',1,0,1)";
     $db->prepare($sql)->execute([$page,'nw_online_tv','IPTV feed submission','IPTV feed submission',$service]);
     echo "Registered UNA service block\n";
 } else echo "Service block already registered\n";
