@@ -200,7 +200,11 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                                 $notice.='</div>';
                             }
                             $notice.='</section>';
-                            if(isset($reviewNotice))$notice=$reviewNotice.$notice;
+                            if(isset($reviewNotice)){
+                                $reviewNotice=substr($reviewNotice,0,-strlen('</section>'));
+                                $reviewNotice.='<form method="post" action="module.php?name=nw_online_tv&amp;page=sync" style="margin-top:18px;display:inline-flex;gap:12px;align-items:center"><input type="hidden" name="csrf_token" value="'.htmlspecialchars(BxDolForm::getCsrfToken(),ENT_QUOTES,'UTF-8').'"><input type="hidden" name="source_id" value="'.(int)$id.'"><input type="hidden" name="preview_page" value="'.(int)$pageNumber.'"><input type="hidden" name="filter_search" value="'.htmlspecialchars($search,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'"><input type="hidden" name="filter_status" value="'.htmlspecialchars($filterStatus,ENT_QUOTES,'UTF-8').'"><input type="hidden" name="filter_sort" value="'.htmlspecialchars($filterSort,ENT_QUOTES,'UTF-8').'"><button type="submit" name="source_action" value="preview_source" style="padding:11px 18px;border:1px solid #687991;border-radius:8px;cursor:pointer;font-weight:600">Back to Selection</button><button type="button" disabled style="padding:11px 18px;border-radius:8px;opacity:.55;cursor:not-allowed">Import Selected — Not Ready</button></form></section>';
+                                $notice=$reviewNotice;
+                            }
                         } elseif($action==='preview_text'){
                             require_once __DIR__ . '/NwOnlineTvPlaylistPreview.php';
                             $text=isset($_POST['playlist_text']) && is_string($_POST['playlist_text']) ? $_POST['playlist_text'] : '';
