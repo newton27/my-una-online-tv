@@ -131,7 +131,10 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                         $action=(string)($_POST['source_action']??'');
                         $id=filter_var($_POST['source_id']??0,FILTER_VALIDATE_INT);
                         if($id===false || $id<0)throw new InvalidArgumentException('Invalid source ID.');
-                        if($action==='preview_source' || $action==='review_selection'){
+                        if($action==='archive' || $action==='restore'){
+                            NwOnlineTvSourcePolicy::archive($pdo,$id,$action==='archive',$auth);
+                            $notice='<p class="nwotv-success" role="status">IPTV source '.($action==='archive'?'archived and disabled':'restored (still disabled)').'. Existing channels were not changed.</p>';
+                        } elseif($action==='preview_source' || $action==='review_selection'){
                             if($id<1)throw new InvalidArgumentException('Invalid source.');
                             $q=$pdo->prepare("SELECT playlist_url,origin FROM nw_online_tv_sources WHERE id=? AND approval_status='approved' AND enabled=1");
                             $q->execute([$id]); $src=$q->fetch(PDO::FETCH_ASSOC);
@@ -190,7 +193,7 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                             $notice.='</tbody></table></div><p>Preview only. Full stream URLs and query tokens are not displayed. No import action is available.</p></section>';
                         } elseif($action==='save')NwOnlineTvSourcePolicy::save($pdo,$id,(string)($_POST['source_title']??''),(string)($_POST['source_url']??''),$auth);
                         else NwOnlineTvSourcePolicy::moderate($pdo,$id,$action,$auth);
-                        if(!in_array($action,['preview_text','preview_source','review_selection'],true))$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
+                        if(!in_array($action,['preview_text','preview_source','review_selection','archive','restore'],true))$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
                     } catch(Throwable $e){
                         error_log('nw_online_tv source action: '.get_class($e));
                         $notice='<p class="nwotv-alert" role="alert">Source change rejected. Check the source fields and your administrator session.</p>';
