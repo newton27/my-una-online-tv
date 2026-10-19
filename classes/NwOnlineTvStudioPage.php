@@ -131,9 +131,18 @@ class NwOnlineTvStudioPage extends BxTemplStudioModule
                         $action=(string)($_POST['source_action']??'');
                         $id=filter_var($_POST['source_id']??0,FILTER_VALIDATE_INT);
                         if($id===false || $id<0)throw new InvalidArgumentException('Invalid source ID.');
-                        if($action==='save')NwOnlineTvSourcePolicy::save($pdo,$id,(string)($_POST['source_title']??''),(string)($_POST['source_url']??''),$auth);
+                        if($action==='preview_text'){
+                            require_once __DIR__ . '/NwOnlineTvPlaylistPreview.php';
+                            $text=isset($_POST['playlist_text']) && is_string($_POST['playlist_text']) ? $_POST['playlist_text'] : '';
+                            $hashes=[];
+                            foreach($pdo->query('SELECT stream_hash FROM nw_online_tv_channels') as $entry) $hashes[$entry['stream_hash']]=true;
+                            $preview=NwOnlineTvPlaylistPreview::parse($text,$hashes,100);
+                            $notice='<section class="nwotv-preview"><h3>Playlist preview — no channels imported</h3><p>Showing '.(int)$preview['shown'].' entries. Duplicates: '.(int)$preview['duplicates'].'. Excluded: '.(int)$preview['excluded'].'.</p><div class="nwotv-table-wrap"><table class="nwotv-table"><thead><tr><th>Channel name</th><th>Host</th><th>Status</th></tr></thead><tbody>';
+                            foreach($preview['items'] as $entry){$notice.='<tr><td>'.htmlspecialchars($entry['title'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($entry['host'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td><td>'.htmlspecialchars($entry['status'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td></tr>';}
+                            $notice.='</tbody></table></div><p>Preview only. Full stream URLs and query tokens are not displayed. No import action is available.</p></section>';
+                        } elseif($action==='save')NwOnlineTvSourcePolicy::save($pdo,$id,(string)($_POST['source_title']??''),(string)($_POST['source_url']??''),$auth);
                         else NwOnlineTvSourcePolicy::moderate($pdo,$id,$action,$auth);
-                        $notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
+                        if($action!=='preview_text')$notice='<p class="nwotv-success" role="status">IPTV source updated. No import started.</p>';
                     } catch(Throwable $e){
                         error_log('nw_online_tv source action: '.get_class($e));
                         $notice='<p class="nwotv-alert" role="alert">Source change rejected. Check the source fields and your administrator session.</p>';
