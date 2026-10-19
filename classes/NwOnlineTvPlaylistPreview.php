@@ -5,11 +5,12 @@
  */
 final class NwOnlineTvPlaylistPreview
 {
-    public static function parse(string $body, array $existingHashes = [], int $maxEntries = 100): array
+    public static function parse(string $body, array $existingHashes = [], int $maxEntries = 100, int $page = 1): array
     {
         if (strlen($body) > 2097152) throw new InvalidArgumentException('Playlist exceeds the preview size limit.');
         if (!preg_match('/^\\s*#EXTM3U(?:\\s|$)/i', substr($body, 0, 256))) throw new InvalidArgumentException('Not an extended M3U playlist.');
         $maxEntries = max(1, min(100, $maxEntries));
+        $page = max(1, min(10000, $page)); $offset = ($page-1)*$maxEntries; $eligibleCount=0;
         $rows = []; $seen = []; $pending = ''; $skipped = 0; $duplicates = 0;
         foreach (preg_split('/\\r\\n|\\r|\\n/', $body) as $line) {
             $line = trim($line);
@@ -34,14 +35,14 @@ final class NwOnlineTvPlaylistPreview
             $dupe = isset($seen[$hash]) || isset($existingHashes[$hash]);
             if ($dupe) $duplicates++;
             $seen[$hash] = true;
-            if (count($rows) < $maxEntries) {
+            if ($eligibleCount >= $offset && $eligibleCount < $offset + $maxEntries) {
                 $rows[] = ['title'=>$pending !== '' ? $pending : 'Unnamed channel',
                     'host'=>strtolower($url['host']), 'duplicate'=>$dupe,
                     'status'=>$dupe ? 'Duplicate' : 'Candidate'];
             }
-            $pending = '';
+            $eligibleCount++; $pending = '';
         }
         return ['items'=>$rows, 'shown'=>count($rows), 'excluded'=>$skipped,
-            'duplicates'=>$duplicates, 'truncated'=>count($seen)>$maxEntries];
+            'duplicates'=>$duplicates, 'total'=>$eligibleCount, 'page'=>$page, 'pages'=>max(1,(int)ceil($eligibleCount/$maxEntries)), 'truncated'=>$eligibleCount>$maxEntries];
     }
 }
