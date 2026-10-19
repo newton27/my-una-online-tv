@@ -30,6 +30,9 @@ final class NwOnlineTvSelectedImport
         if (!$selected || count($selected)>100) throw new InvalidArgumentException('Invalid import batch.');
         if ($classification!=='adult')
             throw new RuntimeException('General-audience import requires an additional publication safety review.');
+        require_once __DIR__.'/NwOnlineTvSourceClassification.php';
+        if(NwOnlineTvSourceClassification::get($db,$sourceId)!==$classification)
+            throw new RuntimeException('Stored source classification does not match this import.');
         $added=0;$existing=0;
         $db->beginTransaction();
         try {
