@@ -94,3 +94,33 @@ SET @nw_home := (SELECT id FROM sys_std_pages WHERE name = 'home' LIMIT 1);
 INSERT INTO sys_std_pages_widgets (page_id, widget_id, `order`)
 SELECT @nw_home, @nw_widget, COALESCE((SELECT MAX(`order`) + 1 FROM sys_std_pages_widgets WHERE page_id = @nw_home), 1)
 FROM DUAL WHERE @nw_home IS NOT NULL AND @nw_widget IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys_std_pages_widgets WHERE page_id = @nw_home AND widget_id = @nw_widget);
+
+-- Native UNA Pages registration for the member-submitted feed form.
+-- This is deliberately idempotent and does not fetch or approve any feeds.
+INSERT INTO sys_objects_page
+  (object, title_system, title, module, layout_id, visible_for_levels,
+   visible_for_levels_editable, uri, url, content_info, meta_title,
+   meta_description, meta_keywords, meta_robots, inj_head, inj_footer,
+   config_api, cache_lifetime, cache_editable, deletable,
+   override_class_name, override_class_file)
+SELECT
+  'nw_online_tv_submit_feed', 'Submit IPTV feed', 'Submit IPTV feed',
+  'nw_online_tv', 5, 2147483647, 1, 'online-tv-submit-feed',
+  'page.php?i=online-tv-submit-feed', '', '', '', '', '', '', '',
+  '', 0, 1, 1, '', ''
+FROM DUAL WHERE NOT EXISTS (
+  SELECT 1 FROM sys_objects_page WHERE object = 'nw_online_tv_submit_feed'
+);
+INSERT INTO sys_pages_blocks
+  (object, cell_id, module, title_system, title, icon, designbox_id,
+   visible_for_levels, type, content, content_empty, text, text_updated,
+   help, config_api, deletable, copyable, `order`)
+SELECT
+  'nw_online_tv_submit_feed', 1, 'nw_online_tv', 'IPTV feed submission',
+  'IPTV feed submission', '', 11, 2147483647, 'service',
+  'a:2:{s:6:"module";s:12:"nw_online_tv";s:6:"method";s:33:"get_member_feed_submission_markup";}',
+  '', '', 0, '', '', 1, 0, 1
+FROM DUAL WHERE NOT EXISTS (
+  SELECT 1 FROM sys_pages_blocks
+  WHERE object = 'nw_online_tv_submit_feed' AND module = 'nw_online_tv'
+);
