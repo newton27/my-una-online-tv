@@ -124,3 +124,20 @@ FROM DUAL WHERE NOT EXISTS (
   SELECT 1 FROM sys_pages_blocks
   WHERE object = 'nw_online_tv_submit_feed' AND module = 'nw_online_tv'
 );
+
+-- Native site navigation: keep any webmaster-created equivalent, avoiding duplicates.
+SET @nw_site_menu_order := (
+  SELECT COALESCE(MAX(`order`), 0) + 1
+  FROM sys_menu_items WHERE set_name = 'sys_site' AND active = 1 AND `order` < 9999
+);
+INSERT INTO sys_menu_items
+  (set_name, module, name, title_system, title, link, onclick, target,
+   icon, submenu_object, visible_for_levels, active, copyable, `order`)
+SELECT 'sys_site', 'nw_online_tv', 'nw-online-tv-submit-feed',
+  'Submit IPTV Feed', 'Submit IPTV Feed', 'page.php?i=online-tv-submit-feed',
+  '', '', 'tv', '', 2147483647, 1, 1, @nw_site_menu_order
+FROM DUAL WHERE NOT EXISTS (
+  SELECT 1 FROM sys_menu_items WHERE set_name = 'sys_site'
+  AND (name IN ('nw-online-tv-submit-feed','submit-iptv-feed')
+       OR link IN ('online-tv-submit-feed','page.php?i=online-tv-submit-feed'))
+);
