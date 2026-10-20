@@ -20,6 +20,8 @@ jobs:
         run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
       - name: Parser checks
         run: php tests/catalog.php
+      - name: IPTV-org metadata gate
+        run: php tests/iptv_org.php
       - name: Audience catalog exclusions
         run: php tests/catalog_audience.php
       - name: Dashboard checks
