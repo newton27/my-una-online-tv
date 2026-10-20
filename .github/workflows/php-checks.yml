@@ -20,6 +20,8 @@ jobs:
         run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
       - name: Parser checks
         run: php tests/catalog.php
+      - name: Audience catalog exclusions
+        run: php tests/catalog_audience.php
       - name: Dashboard checks
         run: php tests/dashboard.php
       - name: Directory checks
