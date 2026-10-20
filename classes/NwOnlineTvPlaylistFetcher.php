@@ -2,8 +2,9 @@
 /** Webmaster-initiated, read-only playlist fetch with DNS pinning and no redirects. */
 final class NwOnlineTvPlaylistFetcher
 {
-    public static function fetch(string $url): string
+    public static function fetch(string $url, int $maxBytes = 2097152): string
     {
+        if ($maxBytes < 1 || $maxBytes > 12582912) throw new InvalidArgumentException('Unsupported fetch size limit.');
         if (!extension_loaded('curl')) throw new RuntimeException('Playlist retrieval unavailable.');
         if (strlen($url)>2048 || !filter_var($url,FILTER_VALIDATE_URL)) throw new InvalidArgumentException('Invalid playlist address.');
         $p=parse_url($url);
@@ -25,14 +26,14 @@ final class NwOnlineTvPlaylistFetcher
         $handle=curl_init($url); $data=''; $tooLarge=false;
         curl_setopt_array($handle,[
             CURLOPT_RETURNTRANSFER=>false, CURLOPT_FOLLOWLOCATION=>false, CURLOPT_MAXREDIRS=>0,
-            CURLOPT_CONNECTTIMEOUT=>4, CURLOPT_TIMEOUT=>10,
+            CURLOPT_CONNECTTIMEOUT=>4, CURLOPT_TIMEOUT=>25,
             CURLOPT_SSL_VERIFYPEER=>true, CURLOPT_SSL_VERIFYHOST=>2,
             CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS, CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS,
             CURLOPT_PROXY=>'', CURLOPT_HTTPPROXYTUNNEL=>false,
             CURLOPT_RESOLVE=>[$host.':443:'.$ips[0]],
             CURLOPT_USERAGENT=>'MyUNAOnlineTV-PlaylistPreview/0.1',
-            CURLOPT_WRITEFUNCTION=>static function($ch,$chunk)use(&$data,&$tooLarge){
-                if(strlen($data)+strlen($chunk)>2097152){$tooLarge=true;return 0;}
+            CURLOPT_WRITEFUNCTION=>static function($ch,$chunk)use(&$data,&$tooLarge,$maxBytes){
+                if(strlen($data)+strlen($chunk)>$maxBytes){$tooLarge=true;return 0;}
                 $data.=$chunk;return strlen($chunk);
             }
         ]);
