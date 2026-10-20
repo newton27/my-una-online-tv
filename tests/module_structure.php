@@ -12,4 +12,10 @@ foreach(['sys_objects_page','sys_pages_blocks','nw_online_tv_submit_feed','get_m
 foreach(['sys_objects_page','sys_pages_blocks','nw_online_tv_submit_feed'] as $needle){
     if(strpos($uninstall,$needle)===false)throw new RuntimeException('Native uninstall missing feed page cleanup: '.$needle);
 }
+foreach(['sys_menu_items','sys_site','nw-online-tv-submit-feed','page.php?i=online-tv-submit-feed'] as $needle) {
+    if(strpos($install,$needle)===false)throw new RuntimeException('Native install missing site navigation: '.$needle);
+}
+if(strpos($uninstall,"DELETE FROM sys_menu_items WHERE module = 'nw_online_tv'")===false) {
+    throw new RuntimeException('Native uninstall missing owned navigation cleanup');
+}
 echo "PASS module structural checks (not UNA runtime validation)\n";
