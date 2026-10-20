@@ -1,3 +1,4 @@
+DELETE FROM sys_menu_items WHERE module = 'nw_online_tv' AND name = 'nw-online-tv-submit-feed' AND set_name = 'sys_site';
 -- Unregister the module-owned UNA Pages service block and page.
 DELETE FROM sys_pages_blocks WHERE object = 'nw_online_tv_submit_feed' AND module = 'nw_online_tv';
 DELETE FROM sys_objects_page WHERE object = 'nw_online_tv_submit_feed' AND module = 'nw_online_tv';
