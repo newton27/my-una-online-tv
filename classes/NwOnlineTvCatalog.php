@@ -15,7 +15,12 @@ class NwOnlineTvCatalog
             if (strncmp($line, '#EXTINF:', 8) === 0) {
                 $comma = strrpos($line, ',');
                 $title = $comma === false ? '' : trim(substr($line, $comma + 1));
-                $pending = $title !== '' ? substr(strip_tags($title), 0, 255) : null;
+                // Reject explicitly adult or closed entries before creating a general catalog candidate.
+                $attributes = substr($line, 8, $comma === false ? strlen($line) : max(0, $comma - 8));
+                $group = '';
+                if (preg_match('/group-title="([^"]*)"/i', $attributes, $match)) $group = trim($match[1]);
+                $blocked = preg_match('/(?:^|[^a-z0-9])(?:adult|xxx|porn|18\\+|nsfw|closed|offline)(?:$|[^a-z0-9])/i', $group . ' ' . $title);
+                $pending = $title !== '' && !$blocked ? substr(strip_tags($title), 0, 255) : null;
                 continue;
             }
             if ($line === '' || $line[0] === '#') continue;
