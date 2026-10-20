@@ -22,7 +22,17 @@ final class NwOnlineTvAutoCatalog
             $q->execute([$sourceId]);
             $url=$q->fetchColumn();
             if (!$url) throw new RuntimeException('No eligible approved general-audience source.');
-            $plan=NwOnlineTvSyncPlanner::plan(NwOnlineTvPlaylistFetcher::fetch((string)$url));
+            require_once __DIR__.'/NwOnlineTvIptvOrg.php';
+            $iptvOrg = hash_equals(NwOnlineTvIptvOrg::PLAYLIST, (string)$url);
+            if ($iptvOrg) {
+                $filtered = NwOnlineTvIptvOrg::filter(
+                    NwOnlineTvPlaylistFetcher::fetch((string)$url, 8388608),
+                    NwOnlineTvPlaylistFetcher::fetch(NwOnlineTvIptvOrg::METADATA, 12582912)
+                );
+                $plan=NwOnlineTvSyncPlanner::plan($filtered['playlist']);
+            } else {
+                $plan=NwOnlineTvSyncPlanner::plan(NwOnlineTvPlaylistFetcher::fetch((string)$url));
+            }
             $result=['discovered'=>$plan['discovered'],'eligible'=>count($plan['eligible']),
                 'excluded'=>$plan['excluded'],'added'=>0,'duplicates'=>0,'dry_run'=>$dryRun];
             if ($dryRun) return $result;
